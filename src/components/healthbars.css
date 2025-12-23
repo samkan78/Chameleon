@@ -1,0 +1,41 @@
+.health-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5px;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 16px;
+  border-radius: 8px;
+  width: 280px;
+}
+
+.health-bar-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.health-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.health-bar-bg {
+  height: 20px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.health-bar-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+  border-radius: 4px;
+}
+
+.health-percent {
+  font-size: 0.8rem;
+  color: #666;
+  text-align: right;
+}

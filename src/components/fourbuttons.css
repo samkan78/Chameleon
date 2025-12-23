@@ -1,0 +1,60 @@
+.four-buttons-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.main-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.main-btn {
+  padding: 10px 16px;
+  background: #000000;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.main-btn:hover {
+  background: #000000;
+}
+
+.main-btn.active {
+  background: #000000;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.4);
+}
+
+.sub-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+}
+
+.sub-btn {
+  padding: 8px 12px;
+  background: #000000;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.sub-btn:hover {
+  background: #000000;
+  transform: translateY(-2px);
+}
+
+.sub-btn:active {
+  transform: translateY(0);
+}
