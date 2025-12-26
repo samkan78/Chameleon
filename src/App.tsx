@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { WelcomeScreen } from "./screens/homepage";
 import Dashboard from "./screens/dashboard";
 import "./App.css";
