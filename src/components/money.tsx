@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from "react";
+interface MoneyProps {
+  coins: number;
+}
 
-export default function Money() {
+export default function Money({ coins }: MoneyProps) {
   return (
     <div style={containerStyle}>
       <button style={buttonStyle} disabled>
-        $100
+        ${coins}
       </button>
     </div>
   );
