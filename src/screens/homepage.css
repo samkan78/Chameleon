@@ -1,0 +1,98 @@
+.app-heading h1 {
+  font-size: 50px;
+  text-align: center;
+}
+
+.app-heading h2 {
+  font-size: 30px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.box-container h1 {
+  /*Choose your chameleon heading */
+  font-size: 40px;
+  text-align: center;
+  margin-top: 0;
+  margin-bottom: 0px;
+}
+
+.box-container h2 {
+  /*name of chameleon */
+  font-size: 25px;
+  text-align: center;
+  margin-bottom: 5px;
+  margin-top: 0px;
+}
+
+.box-container p {
+  /*description of chameleon */
+  font-size: 18px;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.box-container img {
+  /* chameleon image */
+  display: block;
+  margin: 5px auto; /* auto centers horizontally */
+  max-width: 50%; /* scales image down */
+  height: auto;
+}
+
+.box-container {
+  /* white box */
+  border: 2px solid #ccc;
+  padding: 20px;
+  margin: 20px auto;
+  border-radius: 50px; /* Rounded corners */
+  box-shadow: 0 15px 0px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  background-color: #f9f9f9; /* Light background */
+  max-width: 600px; /* Optional: control the maximum width */
+  text-align: center; /* Center content inside the box */
+  /* Center the box itself to the middle of the screen */
+}
+
+/* chameleon Chooser css */
+.arrow-and-chameleons {
+  /* container for arrows and chameleon image */
+  display: flex; /* makes them align horizontally */
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin: 20px 0;
+  margin-bottom: 0px;
+}
+
+.arrow {
+  /* left and right arrows image */
+  width: 100px; /* changes the width of the arrows */
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  padding: 0;
+  display: block;
+}
+
+.arrow:hover {
+  transform: scale(1.1);
+}
+
+.left-arrow-btn, /* left and right arrow buttons */
+.right-arrow-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.name-input {
+  font-size: 20px;
+  padding: 10px;
+  border-radius: 50px;
+  border: 1px solid #ccc;
+  width: 80%;
+  max-width: 400px;
+  text-align: center;
+  margin: 10px auto;
+  display: block;
+}
