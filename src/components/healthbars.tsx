@@ -1,6 +1,7 @@
 import React from "react";
 import "./healthbars.css";
 
+//defining the structure of each health bar
 interface HealthBar {
   label: string;
   current: number;
@@ -8,15 +9,24 @@ interface HealthBar {
   color: string;
 }
 
-export default function HealthBars() {
-  const healthBars: HealthBar[] = [
-    { label: "Energy", current: 50, max: 100, color: "#432626ff" },
-    { label: "Hunger", current: 50, max: 100, color: "#432626ff" },
-    { label: "Happiness", current: 50, max: 100, color: "#432626ff" },
-    { label: "Temperature Comfort", current: 50, max: 100, color: "#432626ff" },
-    { label: "Hydration", current: 50, max: 100, color: "#432626ff" },
-  ];
+//defining the props for healthbars to be used in fourbuttons.tsx
+interface HealthBarsProps {
+  energy: number;
+  hunger: number;
+  happiness: number;
+  health: number;
+  hydration: number;
+}
 
+//main healthbars function
+export default function HealthBars({ energy, hunger, happiness, health, hydration }: HealthBarsProps) {
+  const healthBars: HealthBar[] = [
+    { label: "Energy", current: energy, max: 100, color: "#432626ff" },
+    { label: "Hunger", current: hunger, max: 100, color: "#432626ff" },
+    { label: "Happiness", current: happiness, max: 100, color: "#432626ff" },
+    { label: "Health", current: health, max: 100, color: "#432626ff" },
+    { label: "Hydration", current: hydration, max: 100, color: "#432626ff" },
+  ];
   return (
     <div className="health-box">
       {healthBars.map((bar) => (

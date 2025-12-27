@@ -1,7 +1,6 @@
 import React from "react";
 import ImageBox from "../components/image";
 import "./dashboard.css";
-import HealthBars from "../components/healthbars";
 import FourButtons from "../components/fourbuttons";
 import HowToPlay from "../components/helpButton";
 
@@ -23,7 +22,6 @@ const Dashboard: React.FC<ChameleonDashboard> = ({ petName, petType }) => (
       <h2>Chameleon Dashboard</h2>
       <p>Pet Name: {petName}</p>
       <p>Pet Type: {petType}</p>
-      <HealthBars />
       <FourButtons />
       <HowToPlay />
     </main>

@@ -1,5 +1,6 @@
 import React from "react";
 
+//setting the props for monetary value will be used in fourbuttons.tsx
 type MoneyProps = {
   coins: number;
 };
