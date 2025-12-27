@@ -31,10 +31,11 @@ type Action = {
 // ---------------------------
 const actions: Record<Category, Action[]> = {
   Health: [
-    { name: "Check Eyes", healthValue: 10 },
-    { name: "Trim Nails", healthValue: 10 },
-    { name: "Check Skin Shedding", healthValue: 10 },
-    { name: "Clean Enclosure", healthValue: 10 },
+    { name: "Check Eyes", healthValue: 10, happinessValue: -10  },
+    { name: "Trim Nails", healthValue: 5, happinessValue: -10  },
+    { name: "Check Skin Shedding", healthValue: 15, happinessValue: -10  },
+    { name: "Clean Enclosure", healthValue: 10, happinessValue: -10 },
+    { name: "Vet Visit", cost: 75, healthValue: 50, happinessValue: -25, hydrationValue: 30, energyValue: -10, hungerValue: 30  },
   ],
   Care: [
     { name: "Bath" },
@@ -108,6 +109,7 @@ const FourButtons: React.FC = () => {
   const [health, setHealth] = useState(50);
   const [trickt2unlocked, setTrickt2unlocked] = useState(false); //tier 2 trick unlock state
   const [inventory, setInventory] = useState(0) //inventory state for food items
+  const [lockedActions, setLockedActions] = useState<Set<string>>(new Set()); // Track which locked actions have been used
   // Toggle main category
   const toggleCategory = (category: Category) => {
     setActive(active === category ? null : category);
@@ -118,6 +120,12 @@ const FourButtons: React.FC = () => {
   const handleActionClick = (action: Action) => {
     // Check if this is a locked tier 2 trick - if so, do nothing
     if (action.tiertwotrick === true && !trickt2unlocked) {
+      return;
+    }
+
+    // Check if this action has a lock and has already been used
+    if (action.hasLock && lockedActions.has(action.name)) {
+      alert(`You've already done "${action.name}" today!`);
       return;
     }
 
@@ -211,7 +219,11 @@ const FourButtons: React.FC = () => {
       setCoins(coins - action.cost);
       const audio = new Audio(dingSound); //audio object + noise for informing user of earning/spending coins
       audio.play();
+    }
 
+    // Mark locked actions as used
+    if (action.hasLock) {
+      setLockedActions(prev => new Set(prev).add(action.name));
     }
   };
   
@@ -247,11 +259,12 @@ const FourButtons: React.FC = () => {
             const cannotAfford =
               action.cost !== undefined && action.cost > 0 && coins < action.cost; // Disable if not enough coins
             const isTier2LockedTrick = action.tiertwotrick === true && !trickt2unlocked; // Disable if tier 2 trick not unlocked
+            const isAlreadyUsed = action.hasLock && lockedActions.has(action.name); // Disable if locked action already used
             return (
               <button
                 key={action.name}
                 className="sub-btn"
-                disabled={cannotAfford || isTier2LockedTrick}
+                disabled={cannotAfford || isTier2LockedTrick || isAlreadyUsed}
                 onClick={() => handleActionClick(action)}
               >
                 {action.name}
