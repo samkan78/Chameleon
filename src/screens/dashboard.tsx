@@ -3,9 +3,10 @@ import ImageBox from "../components/image";
 import "./dashboard.css";
 import HealthBars from "../components/healthbars";
 import FourButtons from "../components/fourbuttons";
-import Money from "../components/money";
+import { Money } from "../components/money";
 import HowToPlay from "../components/helpButton";
 
+//defining the petname and pettype as props
 interface ChameleonDashboard {
   petName: string;
   petType: string;
@@ -58,5 +59,6 @@ const Dashboard: React.FC<ChameleonDashboard> = ({ petName, petType }) => {
     </div>
   );
 };
+
 
 export default Dashboard;

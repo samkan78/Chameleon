@@ -2,6 +2,8 @@ import { useState } from "react";
 import { WelcomeScreen } from "./screens/homepage";
 import Dashboard from "./screens/dashboard";
 import "./App.css";
+//import { ToastContainer, toast } from "react-toastify";
+//import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   const [petName, setPetName] = useState<string | null>(null);
