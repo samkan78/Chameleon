@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global reset */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  padding: 40px;
+  background-color: #d4fadc;
+  font-family: "Franklin Gothic Medium", "Arial Narrow", Arial, sans-serif;
+}
+
+/* Custom component classes */
+@layer components {
+  .App {
+    @apply flex flex-col gap-4 items-center justify-center min-h-screen bg-gray-50;
+  }
+
+  .btn {
+    @apply flex gap-2 items-center justify-center py-2 px-4 font-semibold shadow rounded-lg;
+  }
+
+  .btn.btn-danger {
+    @apply text-white bg-red-600 shadow-red-400/40;
+  }
+
+  .btn.btn-success {
+    @apply text-white bg-green-600 shadow-green-400/40;
+  }
+
+  .btn.btn-info {
+    @apply text-white bg-blue-600 shadow-blue-400/40;
+  } 
+}

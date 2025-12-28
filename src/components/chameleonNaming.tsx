@@ -36,7 +36,7 @@ export const ChameleonNaming: React.FC<ChameleonNamingProps> = ({
   const handleContinue = () => {
     if (name.trim() === "") {
       open(
-        <div className="btn btn-danger">
+        <div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">
           Please enter a name for your chameleon!
         </div>,
         3000
@@ -45,13 +45,15 @@ export const ChameleonNaming: React.FC<ChameleonNamingProps> = ({
     }
 
     open(
-      <div className="btn btn-success">
+      <div className="bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg">
         Your chameleon is now named <strong>{name.trim()}</strong>!
       </div>,
       3000
     );
 
-    onContinue(name.trim());
+    setTimeout(() => {
+      onContinue(name.trim());
+    }, 300);
   };
 
   return (
