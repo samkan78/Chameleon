@@ -1,5 +1,6 @@
 import React from "react";
 import "./healthbars.css";
+import TemperatureBar from "./tempraturebar";
 
 //defining the structure of each health bar
 interface HealthBar {
@@ -16,6 +17,11 @@ interface HealthBarsProps {
   happiness: number;
   health: number;
   hydration: number;
+  temperature?: number;
+  onIncreaseTemp?: () => void;
+  onDecreaseTemp?: () => void;
+  chameleonType?: 'panther' | 'jackson' | 'nose-horned';
+  tempChangeUntil?: number | null;
 }
 
 //main healthbars function
@@ -25,6 +31,11 @@ export default function HealthBars({
   happiness,
   health,
   hydration,
+  temperature,
+  onIncreaseTemp,
+  onDecreaseTemp,
+  chameleonType,
+  tempChangeUntil,
 }: HealthBarsProps) {
   const healthBars: HealthBar[] = [
     { label: "Energy", current: energy, max: 100, color: "#432626ff" },
@@ -50,6 +61,15 @@ export default function HealthBars({
           <span className="health-percent">{bar.current}%</span>
         </div>
       ))}
+      {typeof temperature === "number" && (
+        <TemperatureBar
+          temperature={temperature}
+          onIncrease={onIncreaseTemp}
+          onDecrease={onDecreaseTemp}
+          chameleonType={chameleonType}
+          tempChangeUntil={tempChangeUntil}
+        />
+      )}
     </div>
   );
 }

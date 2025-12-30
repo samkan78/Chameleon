@@ -5,6 +5,7 @@ import dingSound from "../assets/ding.mp3"; // Import your audio file
 import HealthBars from "./healthbars";
 import ToastContext from "./ToastService";
 
+
 // ---------------------------
 // defining categories and actions
 // ---------------------------
@@ -143,6 +144,7 @@ const energyStartLevel = randomNumberInRange(10,40);
 const hungerStartLevel = randomNumberInRange(10, 40);
 const happinessStartLevel = randomNumberInRange(10, 40);
 const healthStartLevel = randomNumberInRange(10, 40);
+const temperatureStart = randomNumberInRange(60, 90);
 
 
 // ---------------------------
@@ -166,6 +168,9 @@ const FourButtons: React.FC = () => {
   const [hunger, setHunger] = useState(hungerStartLevel);
   const [happiness, setHappiness] = useState(happinessStartLevel);
   const [health, setHealth] = useState(healthStartLevel);
+  const [temperature, setTemperature] = useState(temperatureStart);
+  const [chameleonType, setChameleonType] = useState<'panther' | 'jackson' | 'nose-horned'>('panther');
+
 
   //---------------------------
   //other states for actions
@@ -181,11 +186,37 @@ const FourButtons: React.FC = () => {
   const [napUntil, setNapUntil] = useState<number | null>(null); // timestamp (ms) when nap ends
   const [cooldowns, setCooldowns] = useState<Record<string, number>>({}); // per-action cooldown end timestamps
   const [, setTick] = useState(0); // trigger re-render for countdowns
+  const [tempChangeUntil, setTempChangeUntil] = useState<number | null>(null); // timestamp for next temp change
 
   useEffect(() => {
     const id = setInterval(() => setTick((t) => t + 1), 1000); // Update every second/ticks per second
     return () => clearInterval(id);
   }, []);
+
+  // Temperature change every 2 minutes
+  useEffect(() => {
+    const scheduleNextTempChange = () => {
+      setTempChangeUntil(Date.now() + 2 * 60 * 1000); // 2 minutes from now
+    };
+
+    const changeTempRandomly = () => {
+      const changeAmount = randomNumberInRange(5, 20);
+      const direction = Math.random() < 0.5 ? -1 : 1;
+      setTemperature((t) => Math.max(30, Math.min(150, t + changeAmount * direction)));
+      scheduleNextTempChange();
+    };
+
+    const checkAndChange = () => {
+      if (tempChangeUntil === null) {
+        scheduleNextTempChange();
+      } else if (tempChangeUntil <= Date.now()) {
+        changeTempRandomly();
+      }
+    };
+
+    const interval = setInterval(checkAndChange, 1000);
+    return () => clearInterval(interval);
+  }, [tempChangeUntil]);
   // Toggle main category
   const toggleCategory = (category: Category) => {
     setActive(active === category ? null : category);
@@ -447,6 +478,9 @@ const FourButtons: React.FC = () => {
         happiness={happiness}
         health={health}
         hydration={hydration}
+        temperature={temperature}
+        onIncreaseTemp={() => setTemperature((t) => Math.min(150, t + 1))}
+        onDecreaseTemp={() => setTemperature((t) => Math.max(30, t - 1))}
       />
 
       {/*mainbuttons and the function to show subbuttons*/}
