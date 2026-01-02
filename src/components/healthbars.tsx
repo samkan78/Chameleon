@@ -1,4 +1,4 @@
-import React from "react";
+
 import "./healthbars.css";
 import TemperatureBar from "./tempraturebar";
 

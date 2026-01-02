@@ -169,7 +169,6 @@ const FourButtons: React.FC = () => {
   const [happiness, setHappiness] = useState(happinessStartLevel);
   const [health, setHealth] = useState(healthStartLevel);
   const [temperature, setTemperature] = useState(temperatureStart);
-  const [chameleonType, setChameleonType] = useState<'panther' | 'jackson' | 'nose-horned'>('panther');
 
 
   //---------------------------
@@ -425,18 +424,17 @@ const FourButtons: React.FC = () => {
     //---------------------------
     
     if (action.cost !== undefined) {
-      //coin value in top right,  Negative cost = earn coins
       setCoins(coins - action.cost);
       const audio = new Audio(dingSound); //audio object + noise for informing user of earning/spending coins
       audio.play();
     }
 
-    // If action has a cooldown defined, set its cooldown timestamp
+    // if action has a cooldown defined, set its cooldown timestamp
     if (action.cooldown !== undefined && action.cooldown > 0) {
-      setCooldowns((prev) => ({ ...prev, [action.name]: Date.now() + action.cooldown * 60 * 1000 }));
+      setCooldowns((prev) => ({ ...prev, [action.name]: Date.now() + (action.cooldown as number) * 60 * 1000 }));
     }
 
-    // Mark locked actions as used so they cant be used again
+    // mark locked actions as used so they cant be used again
     if (action.hasLock) {
       setLockedActions(prev => new Set(prev).add(action.name));
     }
@@ -489,7 +487,7 @@ const FourButtons: React.FC = () => {
           <button
             key={category}
             className={`main-btn ${active === category ? "active" : ""}`}
-            onClick={() => toggleCategory(category)} // Showing subbuttons from predifened function
+            onClick={() => toggleCategory(category)} // showing subbuttons from predifened function
           >
             {category}
           </button>
@@ -500,24 +498,24 @@ const FourButtons: React.FC = () => {
       {active && (
         <div className="sub-buttons">
           {/*------------------------------------------*/}
-          {/*mapping through actions to create subbuttons*/}
+          {/*Mapping through actions to create subbuttons*/}
           {/*------------------------------------------*/}
 
 
           {actions[active].map((action) => {
             const cannotAfford =
-              action.cost !== undefined && action.cost > 0 && coins < action.cost; // Disable if not enough coins
-            const isTier2LockedTrick = action.tiertwotrick === true && !trickt2unlocked; // Disable if tier 2 trick not unlocked
-            const isAlreadyUsed = action.hasLock && lockedActions.has(action.name); // Disable if locked action already used
-            const napActive = napUntil !== null && napUntil > Date.now(); // Check if nap is active
+              action.cost !== undefined && action.cost > 0 && coins < action.cost; // disable if not enough coins
+            const isTier2LockedTrick = action.tiertwotrick === true && !trickt2unlocked; // disable if tier 2 trick not unlocked
+            const isAlreadyUsed = action.hasLock && lockedActions.has(action.name); // disable if locked action already used
+            const napActive = napUntil !== null && napUntil > Date.now(); // check if nap is active
             const isShopOrEarn =
               actions.Shop.some((a) => a.name === action.name) || 
-              actions.Earn.some((a) => a.name === action.name); // Check if action is from Shop or Earn category
-            const cooldownEnd = cooldowns[action.name] ?? 0; // Get cooldown end time for this action
-            const cooldownRemaining = Math.max(0, cooldownEnd - Date.now()); // Calculate remaining cooldown time
-            const hasCooldownActive = cooldownRemaining > 0; // Disable if action is on cooldown
+              actions.Earn.some((a) => a.name === action.name); // check if action is from Shop or Earn category
+            const cooldownEnd = cooldowns[action.name] ?? 0; // get cooldown end time for this action
+            const cooldownRemaining = Math.max(0, cooldownEnd - Date.now()); // calculate remaining cooldown time
+            const hasCooldownActive = cooldownRemaining > 0; // disable if action is on cooldown
             const disabled =
-              cannotAfford || isTier2LockedTrick || isAlreadyUsed || (napActive && !isShopOrEarn) || hasCooldownActive; // Overall disabled state
+              cannotAfford || isTier2LockedTrick || isAlreadyUsed || (napActive && !isShopOrEarn) || hasCooldownActive; // overall disabled state
 
             //---------------------------
             // Format milliseconds to mm:ss
@@ -536,9 +534,9 @@ const FourButtons: React.FC = () => {
                 disabled={disabled}
                 onClick={() => handleActionClick(action)}
               >
-                {action.name} {/* Displays action name */}
-                {action.cost !== undefined && ` — $${Math.abs(action.cost)}`} {/* Earning coins if negative cost */}
-                {actions.Earn.some((a) => a.name === action.name) && hasCooldownActive && ` — ${formatMs(cooldownRemaining)}`} {/* Show cooldown timer for Earn actions */}
+                {action.name} {/* displays action name */}
+                {action.cost !== undefined && ` — $${Math.abs(action.cost)}`} {/* earning coins if negative cost */}
+                {actions.Earn.some((a) => a.name === action.name) && hasCooldownActive && ` — ${formatMs(cooldownRemaining)}`} {/* show cooldown timer for earn actions */}
               </button>
             );
           })}
