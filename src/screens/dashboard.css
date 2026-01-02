@@ -1,25 +1,111 @@
 .dashboard-root {
   display: flex;
-  align-items: stretch;   /* allow children to use full height */
-  gap: 20px;
-  padding: 16px;
   height: 100vh;
+  justify-content: center;  /* center horizontally */
+  align-items: center;      /* center vertically */
+
+}
+.left-panel {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.left-panel {
-  width: 160px;
+.dashboard-main {
   display: flex;
-  justify-content: flex-start; /* left */
-  align-items: center;         /* vertical center */
-  padding-left: 24px;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.right-panel {
+  flex: 1;
+  display: flex;
+  justify-content: center;  /* horizontal center of content */
+  align-items: center;      /* vertical center of content */
+}
+
+.right-panel h2 {
+  font-size: 50px;
+  text-align: center;
+}
+
+.right-panel p {
+  font-size: 24px;
+  text-align: center;
+}
+
+.temp-bar-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin: 10px 0;
+}
+
+.temp-bar-bg {
+  width: 200px;
+  height: 20px;
+  border: 1px solid black;
+  background-color: #eee; /* light gray background for empty part */
+}
+
+.temp-bar-fill {
+  height: 100%;
+  background-color: green;
+}
+
+.temp-label {
+  margin-top: 4px;
+  font-size: 14px;
+}
+
+.dashboard-main h2{
+  text-align: center;
+  font-size: 60px;
+}
+
+.dashboard-main p {
+  text-align: center;
+  font-size: 30px;
 }
 
 .dashboard-main {
   flex: 1;
-  padding: 24px;
+  display: flex;
+  align-items: center;      /* vertical center */
+  justify-content: center;  /* horizontal center */
+
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
 }
 
-/* ensure the image box appears as a lineless, visible box */
-.left-panel > div {
+.chameleon-img {
+  height: 80vh;             /* scale based on viewport height */
+  object-fit: contain;
+}
+
+
+.main-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;      /* center all children horizontally */
+  gap: 16px;
+}
+
+.bars-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   width: 100%;
+  max-width: 300px;         /* optional: limit bar width */
+}
+.main-container {
+  display: flex;
+  flex-direction: row;      /* chameleon left, main content right */
+  align-items: center;      /* vertical center */
+  gap: 40px;                /* space between chameleon and main content */
 }

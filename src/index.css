@@ -15,6 +15,7 @@ body {
   font-family: "Franklin Gothic Medium", "Arial Narrow", Arial, sans-serif;
 }
 
+
 /* Custom component classes */
 @layer components {
   .App {

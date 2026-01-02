@@ -45,7 +45,11 @@ export default function App() {
           path="/dashboard"
           element={
             selectedChameleon && petName ? (
-              <Dashboard petName={petName} petType={selectedChameleon.name} />
+              <Dashboard
+                petName={petName}
+                petType={selectedChameleon.name}
+                image={selectedChameleon.image}
+              />
             ) : (
               <div>Please complete the steps first.</div>
             )

@@ -6,7 +6,6 @@ interface HealthBar {
   label: string;
   current: number;
   max: number;
-  color: string;
 }
 
 //defining the props for healthbars to be used in fourbuttons.tsx
@@ -27,11 +26,11 @@ export default function HealthBars({
   hydration,
 }: HealthBarsProps) {
   const healthBars: HealthBar[] = [
-    { label: "Energy", current: energy, max: 100, color: "#432626ff" },
-    { label: "Hunger", current: hunger, max: 100, color: "#432626ff" },
-    { label: "Happiness", current: happiness, max: 100, color: "#432626ff" },
-    { label: "Health", current: health, max: 100, color: "#432626ff" },
-    { label: "Hydration", current: hydration, max: 100, color: "#432626ff" },
+    { label: "Energy", current: energy, max: 100 },
+    { label: "Hunger", current: hunger, max: 100 },
+    { label: "Happiness", current: happiness, max: 100 },
+    { label: "Health", current: health, max: 100 },
+    { label: "Hydration", current: hydration, max: 100 },
   ];
   return (
     <div className="health-box">
@@ -43,7 +42,6 @@ export default function HealthBars({
               className="health-bar-fill"
               style={{
                 width: `${(bar.current / bar.max) * 100}%`,
-                backgroundColor: bar.color,
               }}
             />
           </div>

@@ -1,11 +1,6 @@
 .health-box {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5px;
-  background: rgba(255, 255, 255, 0.15);
-  padding: 16px;
-  border-radius: 8px;
-  width: 280px;
+  padding: 10px;
+  z-index: 9999;
 }
 
 .health-bar-container {
@@ -22,20 +17,43 @@
 
 .health-bar-bg {
   height: 20px;
-  background: rgba(0, 0, 0, 0.2);
+  background: transparent;
   border-radius: 4px;
   overflow: hidden;
   position: relative;
+  max-width: 500px;
 }
 
 .health-bar-fill {
   height: 100%;
   transition: width 0.3s ease;
   border-radius: 4px;
+  background: linear-gradient(to right, #a02914, #cc7533, #1fcc1f);
+
+  background-size: 300px 100%;
+  background-repeat: no-repeat;
+  background-position: left;
+  max-width: 100%;
 }
 
 .health-percent {
   font-size: 0.8rem;
   color: #666;
   text-align: right;
+}
+.four-buttons-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sub-buttons-wrapper {
+  min-height: 100px;
+}
+
+.healthbars-wrapper {
+  width: 100%;
+  flex-shrink: 0;
+  max-width: 500px;
+  margin: 0 auto;
 }

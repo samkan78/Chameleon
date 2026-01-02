@@ -1,11 +1,10 @@
-// Money.tsx
 import React from "react";
-
-type MoneyProps = {
-  coins: number;
+//food inventory display component
+type foodInventoryProps = {
+  foodInventory: number;
 };
 
-const Money: React.FC<MoneyProps> = ({ coins }) => {
+export const Money: React.FC<foodInventoryProps> = ({ foodInventory }) => {
   return (
     <div style={{ position: "fixed", top: 10, right: 10, zIndex: 1000 }}>
       <button
@@ -17,10 +16,8 @@ const Money: React.FC<MoneyProps> = ({ coins }) => {
         }}
         disabled
       >
-        coins: {coins}
+        foodInventory: {foodInventory}
       </button>
     </div>
   );
 };
-
-export default Money;
