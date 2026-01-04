@@ -4,6 +4,9 @@ import "./fourbuttons.css";
 import dingSound from "../assets/ding.mp3"; // Import your audio file
 import HealthBars from "./healthbars";
 import ToastContext from "./ToastService";
+import Modal from "./modal.tsx";
+import {RestartAnytime} from "./restart"
+import { useRestart } from "./RestartContext";
 
 
 // ---------------------------
@@ -27,6 +30,7 @@ type Action = {
   unlockstier2tricks?: boolean; // whether the action unlocks tier 2 tricks meant only for buying branches in shop
   tiertwotrick?: boolean; // whether the action is a tier 2 trick
   isFood?: boolean; // whether the action is food to be used in inventory
+  popuptest?: boolean; // test for popup modals
 };
 
 // ---------------------------
@@ -45,7 +49,7 @@ const actions: Record<Category, Action[]> = {
     { name: "Misting", hydrationValue: 20, cost: 4 }, //chameleons dont drink water, they absorb it through their skin so this action increases hydration
     { name: "Feed", hungerValue:15, hasFood:true }, //feeding decreases hunger, hasFood indicates food is involved and is used to make sure it is only clickable when food is available in inventory and consumes food item
     { name: "Nap", energyValue: 25, cooldown:2 }, //napping increases energy, cooldown in 2 minutes
-    { name: "Adjust Temperature" }, 
+    { name: "Adjust Temperature", popuptest:true },
   ],
   Tricks: [
     { name: "Climbing Practice", energyValue: -20, happinessValue: 10, hasLock:true }, //climbing practice uses energy but increases happiness, hasLock indicates its a one time action
@@ -65,6 +69,7 @@ const actions: Record<Category, Action[]> = {
     { name: "Do laundry", cost: -45, cooldown:20 }, //higher cooldown for higher earnings
   ],
 };
+
 
 // ---------------------------
 // coins/monetary display component
@@ -170,6 +175,15 @@ const FourButtons: React.FC = () => {
   const [health, setHealth] = useState(healthStartLevel);
   const [temperature, setTemperature] = useState(temperatureStart);
 
+  //---------------------------
+  // popup modal state
+  //---------------------------
+  const [openModal, setOpenModal] = useState(false);
+
+  //---------------------------
+  //Win condition
+  //---------------------------
+  const [win_lose, setWin_lose] =useState('somehow got here')
 
   //---------------------------
   //other states for actions
@@ -177,6 +191,11 @@ const FourButtons: React.FC = () => {
   const [trickt2unlocked, setTrickt2unlocked] = useState(false); //tier 2 trick unlock state
   const [foodInventory, setfoodInventory] = useState(0) //inventory state for food items
   const [lockedActions, setLockedActions] = useState<Set<string>>(new Set()); // Track which locked actions have been used
+  
+  //---------------------------
+  //modal restart button setup
+  //---------------------------
+  const { restartGame } = useRestart();
 
 
   //---------------------------
@@ -256,7 +275,14 @@ const FourButtons: React.FC = () => {
       );
       return;
     }
-
+    if (happiness>90 && energy>90 && hunger >90 && hydration >90 && health >90){
+      //if all bars are above 90, chameleon is INSANE AND RAINBOW
+    }
+    if (energy<0){
+      //chameleon dies
+      setWin_lose('Lose!')
+      setOpenModal(true)
+    }
     //---------------------------
     // health
     //---------------------------
@@ -384,6 +410,12 @@ const FourButtons: React.FC = () => {
       setEnergy(energy + action.energyValue);
       }
     }
+    //---------------------------
+    //popupteest
+    //---------------------------
+    if (action.popuptest !== undefined && action.popuptest==true){
+      setOpenModal(true)
+    }
 
     //---------------------------
     //Happiness
@@ -481,6 +513,26 @@ const FourButtons: React.FC = () => {
         onDecreaseTemp={() => setTemperature((t) => Math.max(30, t - 1))}
       />
 
+      <Modal isOpen={openModal} onClose={() => setOpenModal(false)}>
+        <div className="text-center w-56">
+          <h2>Restart Game?</h2>
+
+          <div className="mx-auto my-4 w-48">
+
+          <h3 className="text-lg font-black text-gray-800">You {win_lose} </h3>
+
+          </div>
+        <div className="flex gap-4">
+          <button 
+          className="btn btn-danger w-full"
+          onClick={restartGame}
+          >Restart
+          </button>
+        </div>
+        </div>
+        
+      </Modal>
+
       {/*mainbuttons and the function to show subbuttons*/}
       <div className="main-buttons">
         {(Object.keys(actions) as Category[]).map((category) => (
@@ -528,6 +580,7 @@ const FourButtons: React.FC = () => {
             };
 
             return (
+              <>
               <button
                 key={action.name}
                 className="sub-btn"
@@ -538,6 +591,7 @@ const FourButtons: React.FC = () => {
                 {action.cost !== undefined && ` — $${Math.abs(action.cost)}`} {/* earning coins if negative cost */}
                 {actions.Earn.some((a) => a.name === action.name) && hasCooldownActive && ` — ${formatMs(cooldownRemaining)}`} {/* show cooldown timer for earn actions */}
               </button>
+              </>
             );
           })}
         </div>

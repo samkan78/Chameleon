@@ -60,14 +60,14 @@ const TemperatureBar: React.FC<TemperatureBarProps> = ({
           style={{ width: `${Math.max(0, Math.min(100, percent))}%`, backgroundColor: color }}
         />
       </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <h1 style={{ display: 'flex', justifyContent: 'bottom-0 right-0', alignItems: 'center' }}>
         <span className="health-percent">{Math.round(temperature)}°F</span>
         {tempChangeUntil && tempChangeUntil > Date.now() && (
           <span className="health-percent" style={{ fontSize: '0.75rem', color: '#999' }}>
             Change in: {formatTime(timeUntilChange)}
           </span>
         )}
-      </div>
+      </h1>
     </div>
   );
 };
