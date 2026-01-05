@@ -45,7 +45,7 @@ const actions: Record<Category, Action[]> = {
     { name: "Misting", hydrationValue: 20, cost: 4 },
     { name: "Feed", hungerValue: 15, hasFood: true },
     { name: "Nap", energyValue: 25, cooldown: 2 },
-    { name: "Adjust Temperature", popuptest: true },
+    { name: "testing for the dev", energyValue:10,hungerValue:10,hydrationValue:10,healthValue:10,happinessValue:10 },
   ],
   Tricks: [
     { name: "Climbing Practice", energyValue: -20, happinessValue: 10, hasLock: true },
@@ -131,8 +131,13 @@ const FourButtons: React.FC = () => {
   const [, setTick] = useState(0);
   const [tempChangeUntil, setTempChangeUntil] = useState<number | null>(null);
 
+  const [level, setlevel] = useState(1)
+  const [unlockedEarnSpots, setunlockedEarnSpots] = useState(level)
+  
   // dynamic Earn actions
   const [dynamicEarnActions, setDynamicEarnActions] = useState<Action[]>([]);
+
+  const canAddEarnSlot = dynamicEarnActions.length < unlockedEarnSpots;
 
   // modal for adding Earn action
   const [earnModalOpen, setEarnModalOpen] = useState(false);
@@ -174,7 +179,6 @@ const FourButtons: React.FC = () => {
   //---------------------------
 
   const handleActionClick = (action: Action) => {
-    // ====== ORIGINAL LOGIC KEPT ======
     // check if this is a locked tier 2 trick
     if (action.tiertwotrick === true && !trickt2unlocked) return;
 
@@ -214,26 +218,45 @@ const FourButtons: React.FC = () => {
         setHappiness(happiness - 5);
         open(<div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">Health is at maximum! Your chameleon gets restless with too much disturbance.</div>, 3000);
         return;
-      } else setHealth(health + action.healthValue);
+      } else if (health + action.healthValue <0){
+        open(<div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">Your chameleon is in critical condition!!!</div>, 3000);
+        return;
+      } else {
+      setHealth(health + action.healthValue);
+      }
     }
 
     // ----- FOOD -----
     if (action.isFood) {
-      if (action.cost !== undefined) setCoins(coins - action.cost);
+      if (action.cost !== undefined){
+      setCoins(coins - action.cost);
       setFoodInventory(foodInventory + 1);
       open(<div className="bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg">You have purchased food! You now have {foodInventory + 1} food items.</div>, 3000);
       return;
+      }
     }
 
     if (action.hungerValue !== undefined) {
       if (foodInventory >= 1) {
         if (hunger + action.hungerValue > 100) {
-          setHealth(health - 5);
-          setHunger(100);
-          open(<div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">Your chameleon is full and cannot eat more! It threw up the food.</div>, 3000);
-          setFoodInventory(foodInventory - 1);
+          if (health >= 5){
+            setHealth(health - 5);
+            setHunger(100);
+            open(<div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">Your chameleon is full and cannot eat more! It threw up the food.</div>, 3000);
+            setFoodInventory(foodInventory - 1);
+            return;
+          } else {
+            open(<div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">Your chameleon is in critical condition!!!</div>, 3000);
+            return;
+          }
+
+        } else if (hunger + action.hungerValue < 0){
+          open(<div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">Your chameleon is too hungry to do that!</div>, 3000);
           return;
-        } else setHunger(hunger + action.hungerValue), setFoodInventory(foodInventory - 1);
+        } else {
+          setHunger(hunger + action.hungerValue)
+          setFoodInventory(foodInventory - 1);
+        }
       } else {
         open(<div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">No food available in inventory! Please buy food from the shop.</div>, 3000);
       }
@@ -246,32 +269,56 @@ const FourButtons: React.FC = () => {
     }
 
     // ----- NAP -----
-    if (action.name === "Nap" && action.cooldown) {
+    if (action.name === "Nap" && action.cooldown !== undefined) {
       setNapUntil(Date.now() + action.cooldown * 60 * 1000);
       open(<div className="bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg">Your chameleon is now napping for {action.cooldown} minutes.</div>, 3000);
     }
 
     // ----- ENERGY -----
     if (action.energyValue !== undefined) {
-      if (energy + action.energyValue > 100) setEnergy(100), open(<div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">Energy is at maximum!</div>, 3000);
-      else if (energy + action.energyValue < 0) setEnergy(0), open(<div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">Your chameleon is too tired to do that!</div>, 3000);
-      else setEnergy(energy + action.energyValue);
+      if (energy + action.energyValue > 100){ 
+        setEnergy(100)
+        open(<div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">Energy is at maximum!</div>, 3000);
+      } else if (energy + action.energyValue < 0) {
+        open(<div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">Your chameleon is too tired to do that!</div>, 3000);
+        return;
+      } else {
+        setEnergy(energy + action.energyValue);
+      }
     }
 
     // ----- HAPPINESS -----
     if (action.happinessValue !== undefined) {
-      setHappiness(Math.min(100, happiness + action.happinessValue));
+      if (action.happinessValue + happiness < 0){
+        open(<div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">Your chameleon is very depressed! It cannot accomplish this action!</div>, 3000);
+        return;
+      } else if (action.happinessValue + happiness > 100){
+        setHappiness(100);
+      } else {
+        setHydration(happiness + action.happinessValue);
+      }
     }
-
     // ----- HYDRATION -----
     if (action.hydrationValue !== undefined) {
-      setHydration(Math.min(100, hydration + action.hydrationValue));
+      if (action.hydrationValue + hydration < 0){
+        open(<div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">Your chameleon is very thirsty! It cannot accomplish this action!</div>, 3000);
+        return;
+      } else if (action.hydrationValue + hydration > 100){
+        open(<div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">Your chameleon is not thirsty anymore!</div>, 3000);
+        setHydration(100);
+      } else {
+        setHydration(hydration + action.hydrationValue);
+      }
     }
     // ----- COOLDOWNS -----
-    if (action.cooldown!==undefined) setCooldowns(prev => ({ ...prev, [action.name]: Date.now() + action.cooldown * 60 * 1000 }));
+    if (action.cooldown !== undefined){
+      setCooldowns(prev => ({ ...prev, [action.name]: Date.now() + action.cooldown * 60 * 1000 }));
+    }
 
     // ----- LOCKED ACTIONS -----
-    if (action.hasLock) setLockedActions(prev => new Set(prev).add(action.name));
+    if (action.hasLock){
+      setLockedActions(prev => new Set(prev).add(action.name));
+    }
   };
 
   //---------------------------
@@ -300,20 +347,60 @@ const FourButtons: React.FC = () => {
       </Modal>
 
       {/* Earn modal */}
-      <Modal isOpen={earnModalOpen} onClose={() => setEarnModalOpen(false)}>
-        <div className="text-center w-64">
-          <h2>Add Earn Action</h2>
-          <input className="input" placeholder="Action Name" value={newEarnName} onChange={e => setNewEarnName(e.target.value)} />
-          <input className="input mt-2" type="number" placeholder="Coins to give" value={newEarnCoins} onChange={e => setNewEarnCoins(Number(e.target.value))} />
-          <button className="btn btn-primary mt-2 w-full" onClick={() => {
-            if (!newEarnName) return;
-            const newAction: Action = { name: newEarnName, cost: -Math.abs(newEarnCoins), cooldown: 15 };
-            setDynamicEarnActions(prev => [...prev, newAction]);
-            open(<div className="bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg">Added new Earn action: {newAction.name}</div>, 3000);
-            setNewEarnName(""); setNewEarnCoins(20); setEarnModalOpen(false);
-          }}>Add</button>
-        </div>
-      </Modal>
+    <Modal isOpen={earnModalOpen} onClose={() => setEarnModalOpen(false)}>
+    <div className="text-center w-64">
+      <h2>Add Earn Action</h2>
+
+      <input
+        className="input"
+        placeholder="Action Name"
+        value={newEarnName}
+        onChange={e => setNewEarnName(e.target.value)}
+      />
+
+      <input
+        className="input mt-2"
+        type="number"
+        placeholder="Coins to give"
+        min={0}
+        max={30}
+        value={newEarnCoins}
+        onChange={e => {
+        const value = Number(e.target.value);
+        setNewEarnCoins(Math.min(30, Math.max(0, value)));}}
+      />
+
+      <button
+        className="btn btn-primary mt-2 w-full"
+        onClick={() => {
+        if (!newEarnName) return;
+
+        const safeCoins = Math.min(30, Math.max(0, newEarnCoins));
+
+        const newAction: Action = {
+          name: newEarnName,
+          cost: -safeCoins,
+          cooldown: 15,
+        };
+
+        setDynamicEarnActions(prev => [...prev, newAction]);
+
+        open(
+          <div className="bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg">
+            Added new Earn action: {newAction.name}
+          </div>,
+          3000
+        );
+
+        setNewEarnName("");
+        setNewEarnCoins(20);
+        setEarnModalOpen(false);}}
+      >
+      Add
+      </button>
+    </div>
+    </Modal>
+
 
       {/* Main buttons */}
       <div className="main-buttons">
@@ -341,7 +428,14 @@ const FourButtons: React.FC = () => {
 
           {/* Add Earn action button */}
           {active === "Earn" && (
-            <button className="sub-btn" onClick={() => setEarnModalOpen(true)}>+ Add Earn Action</button>
+            <button className="sub-btn" onClick={() => {
+              if (!canAddEarnSlot){
+                open(<div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">Maybe try leveling up before adding another Earn action!</div>, 3000);
+                return;
+              }
+              setEarnModalOpen(true)}}>
+              + Add Earn Action
+              </button>
           )}
         </div>
       )}
