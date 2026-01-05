@@ -1,170 +1,117 @@
 // FourButtons.tsx
 import React, { useState, useContext, useEffect } from "react";
 import "./fourbuttons.css";
-import dingSound from "../assets/ding.mp3"; // Import your audio file
+import dingSound from "../assets/ding.mp3";
 import HealthBars from "./healthbars";
 import ToastContext from "./ToastService";
 import Modal from "./modal.tsx";
-import {RestartAnytime} from "./restart"
 import { useRestart } from "./RestartContext";
-
 
 // ---------------------------
 // defining categories and actions
 // ---------------------------
-
-//main buttons/categories
 type Category = "Health" | "Care" | "Tricks" | "Shop" | "Earn";
 
 type Action = {
   name: string;
-  cost?: number; // Positive = costs coins and Negative = earns coins because its (x-y) and (x--y)=(x+y)
-  energyValue?: number; // how much energy it uses or gives, positive = gives energy, negative = uses energy
-  hungerValue?: number; // how much hunger it uses or gives, positive = less hungery, negative = more hunger
-  hydrationValue?: number; // how much hydration it uses or gives, positive = more hydration, negative = less hydration
-  happinessValue?: number; // how much happiness it uses or gives, positive = more happiness, negative = less happiness
-  healthValue?: number; // how much health it uses or gives, positive = more health, negative = less health
-  hasFood?: boolean; // whether the action involves food
-  hasLock?: boolean; // whether the action is a one time thing and then locks
-  cooldown?: number; // cooldown time in minutes
-  unlockstier2tricks?: boolean; // whether the action unlocks tier 2 tricks meant only for buying branches in shop
-  tiertwotrick?: boolean; // whether the action is a tier 2 trick
-  isFood?: boolean; // whether the action is food to be used in inventory
-  popuptest?: boolean; // test for popup modals
+  cost?: number;
+  energyValue?: number;
+  hungerValue?: number;
+  hydrationValue?: number;
+  happinessValue?: number;
+  healthValue?: number;
+  hasFood?: boolean;
+  hasLock?: boolean;
+  cooldown?: number;
+  unlockstier2tricks?: boolean;
+  tiertwotrick?: boolean;
+  isFood?: boolean;
+  popuptest?: boolean;
 };
 
 // ---------------------------
-// subbuton actions
+// subbutton actions
 // ---------------------------
 const actions: Record<Category, Action[]> = {
   Health: [
-    { name: "Check Eyes", healthValue: 10, happinessValue: -10  }, //checking eyes improves health but decreases happiness due to disturbance
-    { name: "Trim Nails", healthValue: 5, happinessValue: -10  }, //trimming nails improves health but decreases happiness due to disturbance
-    { name: "Check Skin Shedding", healthValue: 15, happinessValue: -10  }, //checking skin shedding improves health but decreases happiness due to disturbance
-    { name: "Clean Enclosure", healthValue: 10, happinessValue: -10 }, //cleaning enclosure improves health but decreases happiness due to disturbance
-    { name: "Vet Visit", cost: 75, healthValue: 50, happinessValue: -25, hydrationValue: 30, energyValue: -10, hungerValue: 30  }, //vet visit costs coins but greatly improves health, hydration, hunger and slightly decreases energy and happiness due to stress
+    { name: "Check Eyes", healthValue: 10, happinessValue: -10 },
+    { name: "Trim Nails", healthValue: 5, happinessValue: -10 },
+    { name: "Check Skin Shedding", healthValue: 15, happinessValue: -10 },
+    { name: "Clean Enclosure", healthValue: 10, happinessValue: -10 },
+    { name: "Vet Visit", cost: 75, healthValue: 50, happinessValue: -25, hydrationValue: 30, energyValue: -10, hungerValue: 30 },
   ],
   Care: [
-    { name: "Bath" },
-    { name: "Misting", hydrationValue: 20, cost: 4 }, //chameleons dont drink water, they absorb it through their skin so this action increases hydration
-    { name: "Feed", hungerValue:15, hasFood:true }, //feeding decreases hunger, hasFood indicates food is involved and is used to make sure it is only clickable when food is available in inventory and consumes food item
-    { name: "Nap", energyValue: 25, cooldown:2 }, //napping increases energy, cooldown in 2 minutes
-    { name: "Adjust Temperature", popuptest:true },
+    { name: "Play", happinessValue: 30, hungerValue: -15 },
+    { name: "Misting", hydrationValue: 20, cost: 4 },
+    { name: "Feed", hungerValue: 15, hasFood: true },
+    { name: "Nap", energyValue: 25, cooldown: 2 },
+    { name: "Adjust Temperature", popuptest: true },
   ],
   Tricks: [
-    { name: "Climbing Practice", energyValue: -20, happinessValue: 10, hasLock:true }, //climbing practice uses energy but increases happiness, hasLock indicates its a one time action
-    { name: "Hand Approach", energyValue: -25, happinessValue: 15, hasLock:true }, //hand approach uses energy but increases happiness, hasLock indicates its a one time action
-    { name: "Fetch", energyValue: -30, happinessValue: 20, tiertwotrick:true }, //fetch uses energy but increases happiness, tier 2 trick only available after buying branches
-    { name: "Target Training", energyValue: -35, happinessValue: 25, tiertwotrick:true }, //target training uses energy but increases happiness, tier 2 trick only available after buying branches
+    { name: "Climbing Practice", energyValue: -20, happinessValue: 10, hasLock: true },
+    { name: "Hand Approach", energyValue: -25, happinessValue: 15, hasLock: true },
+    { name: "Fetch", energyValue: -30, happinessValue: 20, tiertwotrick: true },
+    { name: "Target Training", energyValue: -35, happinessValue: 25, tiertwotrick: true },
   ],
   Shop: [
-    { name: "Buy Crickets", cost: 5, isFood:true }, //buying food items
-    { name: "Buy Mealworms", cost: 5, isFood:true }, //buying food items 
-    { name: "Purchase Branches", cost: 10, unlockstier2tricks:true }, //buying branches to unlock tier 2 tricks, cost in money component
+    { name: "Buy Crickets", cost: 5, isFood: true },
+    { name: "Buy Mealworms", cost: 5, isFood: true },
+    { name: "Purchase Branches", cost: 10, unlockstier2tricks: true },
   ],
   Earn: [
-    { name: "Clean Room", cost: -20, cooldown:5}, //lower cooldown for lower earnings
-    { name: "Do Homework", cost: -30,cooldown:10 }, //lower cooldown for lower earnings
-    { name: "Take a shower", cost: -45, cooldown:15 }, //higher cooldown for higher earnings
-    { name: "Do laundry", cost: -45, cooldown:20 }, //higher cooldown for higher earnings
+    { name: "Clean Room", cost: -20, cooldown: 5 },
+    { name: "Do Homework", cost: -30, cooldown: 10 },
+    { name: "Take a shower", cost: -45, cooldown: 15 },
+    { name: "Do laundry", cost: -45, cooldown: 20 },
   ],
 };
-
 
 // ---------------------------
 // coins/monetary display component
 // ---------------------------
-type foodInventoryProps = { foodInventory: number }; //props from foodinventory.tsx
-
-const FoodInventory: React.FC<foodInventoryProps> = ({ foodInventory }) => {
-  const containerStyle: React.CSSProperties = {
-    position: "fixed",
-    top: 60,
-    right: 10,
-    zIndex: 1000,
-  };
-  const buttonStyle: React.CSSProperties = {
-    width: 120,
-    height: 40,
-    backgroundColor: "brown",
-    color: "white",
-    borderRadius: 5,
-    border: "none",
-    fontWeight: "bold",
-  };
+type FoodInventoryProps = { foodInventory: number };
+const FoodInventory: React.FC<FoodInventoryProps> = ({ foodInventory }) => {
   return (
-    <div style={containerStyle}>
-      <button style={buttonStyle} disabled>
+    <div style={{ position: "fixed", top: 60, right: 10, zIndex: 1000 }}>
+      <button style={{ width: 120, height: 40, backgroundColor: "brown", color: "white", borderRadius: 5, border: "none", fontWeight: "bold" }} disabled>
         Food Items: {foodInventory}
       </button>
     </div>
   );
 };
 
-
-
-type MoneyProps = { coins: number }; //props from money.tsx
-
+type MoneyProps = { coins: number };
 const Money: React.FC<MoneyProps> = ({ coins }) => {
-  const containerStyle: React.CSSProperties = {
-    position: "fixed",
-    top: 10,
-    right: 10,
-    zIndex: 1000,
-  };
-
-  const buttonStyle: React.CSSProperties = {
-    width: 80,
-    height: 40,
-    backgroundColor: "black",
-    color: "white",
-    borderRadius: 5,
-    border: "none",
-    fontWeight: "bold",
-  };
-
   return (
-    <div style={containerStyle}>
-      <button style={buttonStyle} disabled>
+    <div style={{ position: "fixed", top: 10, right: 10, zIndex: 1000 }}>
+      <button style={{ width: 80, height: 40, backgroundColor: "black", color: "white", borderRadius: 5, border: "none", fontWeight: "bold" }} disabled>
         Coins: {coins}
       </button>
     </div>
   );
 };
+
 //---------------------------
 // random variable function
 //---------------------------
-
-const randomNumberInRange = (min: number, max: number): number => {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-};
+const randomNumberInRange = (min: number, max: number): number => Math.floor(Math.random() * (max - min + 1)) + min;
 
 //---------------------------
-// starting levels for each bar
+// starting levels
 //---------------------------
-
-
-const hydrationStartLevel = randomNumberInRange(10, 40);
-const energyStartLevel = randomNumberInRange(10,40);
-const hungerStartLevel = randomNumberInRange(10, 40);
-const happinessStartLevel = randomNumberInRange(10, 40);
-const healthStartLevel = randomNumberInRange(10, 40);
+const hydrationStartLevel = randomNumberInRange(30, 60);
+const energyStartLevel = randomNumberInRange(30, 60);
+const hungerStartLevel = randomNumberInRange(30, 60);
+const happinessStartLevel = randomNumberInRange(30, 60);
+const healthStartLevel = randomNumberInRange(30, 60);
 const temperatureStart = randomNumberInRange(60, 90);
 
-
 // ---------------------------
-// main buttons
+// main component
 // ---------------------------
-
 const FourButtons: React.FC = () => {
-  //notification context
-  const { open } = useContext(ToastContext); 
-
-
-
-  //---------------------------
-  // starting values and states for bars
-  //---------------------------
+  const { open } = useContext(ToastContext);
+  const { restartGame } = useRestart();
 
   const [active, setActive] = useState<Category | null>(null);
   const [coins, setCoins] = useState(50);
@@ -174,426 +121,228 @@ const FourButtons: React.FC = () => {
   const [happiness, setHappiness] = useState(happinessStartLevel);
   const [health, setHealth] = useState(healthStartLevel);
   const [temperature, setTemperature] = useState(temperatureStart);
-
-  //---------------------------
-  // popup modal state
-  //---------------------------
   const [openModal, setOpenModal] = useState(false);
+  const [win_lose, setWin_lose] = useState("somehow got here");
+  const [trickt2unlocked, setTrickt2unlocked] = useState(false);
+  const [foodInventory, setFoodInventory] = useState(0);
+  const [lockedActions, setLockedActions] = useState<Set<string>>(new Set());
+  const [napUntil, setNapUntil] = useState<number | null>(null);
+  const [cooldowns, setCooldowns] = useState<Record<string, number>>({});
+  const [, setTick] = useState(0);
+  const [tempChangeUntil, setTempChangeUntil] = useState<number | null>(null);
+
+  // dynamic Earn actions
+  const [dynamicEarnActions, setDynamicEarnActions] = useState<Action[]>([]);
+
+  // modal for adding Earn action
+  const [earnModalOpen, setEarnModalOpen] = useState(false);
+  const [newEarnName, setNewEarnName] = useState("");
+  const [newEarnCoins, setNewEarnCoins] = useState<number>(20);
 
   //---------------------------
-  //Win condition
+  // Tick interval for countdowns
   //---------------------------
-  const [win_lose, setWin_lose] =useState('somehow got here')
-
-  //---------------------------
-  //other states for actions
-  //---------------------------
-  const [trickt2unlocked, setTrickt2unlocked] = useState(false); //tier 2 trick unlock state
-  const [foodInventory, setfoodInventory] = useState(0) //inventory state for food items
-  const [lockedActions, setLockedActions] = useState<Set<string>>(new Set()); // Track which locked actions have been used
-  
-  //---------------------------
-  //modal restart button setup
-  //---------------------------
-  const { restartGame } = useRestart();
-
-
-  //---------------------------
-  // Nap and cooldown setup
-  //---------------------------
-  const [napUntil, setNapUntil] = useState<number | null>(null); // timestamp (ms) when nap ends
-  const [cooldowns, setCooldowns] = useState<Record<string, number>>({}); // per-action cooldown end timestamps
-  const [, setTick] = useState(0); // trigger re-render for countdowns
-  const [tempChangeUntil, setTempChangeUntil] = useState<number | null>(null); // timestamp for next temp change
-
   useEffect(() => {
-    const id = setInterval(() => setTick((t) => t + 1), 1000); // Update every second/ticks per second
+    const id = setInterval(() => setTick((t) => t + 1), 1000);
     return () => clearInterval(id);
   }, []);
 
-  // Temperature change every 2 minutes
+  //---------------------------
+  // Temperature change
+  //---------------------------
   useEffect(() => {
-    const scheduleNextTempChange = () => {
-      setTempChangeUntil(Date.now() + 2 * 60 * 1000); // 2 minutes from now
-    };
-
+    const scheduleNextTempChange = () => setTempChangeUntil(Date.now() + 2 * 60 * 1000);
     const changeTempRandomly = () => {
       const changeAmount = randomNumberInRange(5, 20);
       const direction = Math.random() < 0.5 ? -1 : 1;
       setTemperature((t) => Math.max(30, Math.min(150, t + changeAmount * direction)));
       scheduleNextTempChange();
     };
-
     const checkAndChange = () => {
-      if (tempChangeUntil === null) {
-        scheduleNextTempChange();
-      } else if (tempChangeUntil <= Date.now()) {
-        changeTempRandomly();
-      }
+      if (tempChangeUntil === null) scheduleNextTempChange();
+      else if (tempChangeUntil <= Date.now()) changeTempRandomly();
     };
-
     const interval = setInterval(checkAndChange, 1000);
     return () => clearInterval(interval);
   }, [tempChangeUntil]);
-  // Toggle main category
-  const toggleCategory = (category: Category) => {
-    setActive(active === category ? null : category);
-  };
 
-  // ---------------------------
+  // Toggle main category
+  const toggleCategory = (category: Category) => setActive(active === category ? null : category);
+
+  //---------------------------
   // handle clicking a sub-action
-  // ---------------------------
+  //---------------------------
 
   const handleActionClick = (action: Action) => {
+    // ====== ORIGINAL LOGIC KEPT ======
     // check if this is a locked tier 2 trick
-    if (action.tiertwotrick === true && !trickt2unlocked) {
-      return;
-    }
+    if (action.tiertwotrick === true && !trickt2unlocked) return;
 
-    // check if this action has a lock and has already been used
     if (action.hasLock && lockedActions.has(action.name)) {
-      open(
-        <div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">
-          You've already done ${action.name} today!
-        </div>,
-        3000
-        );
+      open(<div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">You've already done {action.name} today!</div>, 3000);
       return;
     }
 
-    // if napping only let shop and earn actions through
     const napActive = napUntil !== null && napUntil > Date.now();
     const isShopOrEarn =
       actions.Shop.some((a) => a.name === action.name) ||
-      actions.Earn.some((a) => a.name === action.name);
+      actions.Earn.some((a) => a.name === action.name) ||
+      dynamicEarnActions.some((a) => a.name === action.name);
+
     if (napActive && !isShopOrEarn) {
-      open(
-        <div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">
-          Your chameleon is napping — wait until it wakes up.
-        </div>,
-        3000
-      );
+      open(<div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">Your chameleon is napping — wait until it wakes up.</div>, 3000);
       return;
     }
-    if (happiness>90 && energy>90 && hunger >90 && hydration >90 && health >90){
-      //if all bars are above 90, chameleon is INSANE AND RAINBOW
-    }
-    if (energy<0){
-      //chameleon dies
-      setWin_lose('Lose!')
-      setOpenModal(true)
-    }
-    //---------------------------
-    // health
-    //---------------------------
 
-    if (action.healthValue !== undefined) {
-      if (health + action.healthValue>100){ //checking if health exceeds 100
-        setHealth(100);
-        setHappiness(happiness - 5), //chameleon gets restless with too much disturbance
-        open(
-        <div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">
-          Health is at maximum! Your chameleon gets restless with too much disturbance.
-        </div>,
-        3000
-        ); //notification for checking up for no reason
+    
+    // ----- COINS -----
+    if (action.cost !== undefined) {
+      if (coins - action.cost < 0){
+        setCoins(0);
+        open(<div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">No money left! Try looking at the Earn catagory.</div>, 3000);
         return;
       } else {
-      //health value for bar
-      setHealth(health + action.healthValue);
+      setCoins(coins - action.cost);
+      new Audio(dingSound).play();
       }
     }
 
-    //---------------------------
-    //Food count
-    //---------------------------
+    // ----- HEALTH -----
+    if (action.healthValue !== undefined) {
+      if (health + action.healthValue > 100) {
+        setHealth(100);
+        setHappiness(happiness - 5);
+        open(<div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">Health is at maximum! Your chameleon gets restless with too much disturbance.</div>, 3000);
+        return;
+      } else setHealth(health + action.healthValue);
+    }
 
+    // ----- FOOD -----
     if (action.isFood) {
-      // Logic to add food to inventory can be implemented here
-      if (action.cost !== undefined){ //safety check
-        setCoins(coins - action.cost); //deducting coins for buying food
-      }
-      setfoodInventory(foodInventory + 1); //increasing food count by 1
-      open(
-        <div className="bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg">
-          You have purchased food! You now have {foodInventory + 1} food items in your inventory.
-        </div>,
-        3000
-      );
+      if (action.cost !== undefined) setCoins(coins - action.cost);
+      setFoodInventory(foodInventory + 1);
+      open(<div className="bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg">You have purchased food! You now have {foodInventory + 1} food items.</div>, 3000);
       return;
     }
-
-    //---------------------------
-    //Hunger
-    //---------------------------
 
     if (action.hungerValue !== undefined) {
-      if (foodInventory >=1) { //checking if food is available in inventory and action involves food
-        if (hunger + action.hungerValue>100){ //checking if hunger exceeds 100
-        setHealth(health - 5), //decreasing health by 10 if overfed
-        setHunger(100); //maxing out hunger
-        open(
-        <div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">
-          Your chameleon is full and cannot eat more! It threw up the food.
-        </div>,
-        3000
-        ); //notification for overfeeding
-        setfoodInventory(foodInventory - 1); //decreasing food count by 1 after feeding
-        return;
-        } else {
-        //hunger value for bar
-        setHunger(hunger + action.hungerValue);
-        setfoodInventory(foodInventory - 1); //decreasing food count by 1 after feeding
-        }
+      if (foodInventory >= 1) {
+        if (hunger + action.hungerValue > 100) {
+          setHealth(health - 5);
+          setHunger(100);
+          open(<div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">Your chameleon is full and cannot eat more! It threw up the food.</div>, 3000);
+          setFoodInventory(foodInventory - 1);
+          return;
+        } else setHunger(hunger + action.hungerValue), setFoodInventory(foodInventory - 1);
       } else {
-        open(
-        <div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">
-          No food available in inventory! Please buy food from the shop.
-        </div>,
-        3000
-        );
+        open(<div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">No food available in inventory! Please buy food from the shop.</div>, 3000);
       }
     }
 
-    //---------------------------
-    //Tier 2 trick unlock handling
-    //---------------------------
-
-    if (action.unlockstier2tricks !== undefined && action.unlockstier2tricks === true) { //unlock tier 2 tricks check
-      setTrickt2unlocked(true); //setting tier 2 trick unlock to true
-      open(
-        <div className="bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg">
-          Tier 2 Tricks Unlocked! You can now teach your chameleon Fetch and Target Training.
-        </div>,
-        3000
-      );
+    // ----- TIER 2 TRICKS -----
+    if (action.unlockstier2tricks) {
+      setTrickt2unlocked(true);
+      open(<div className="bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg">Tier 2 Tricks Unlocked! You can now teach Fetch and Target Training.</div>, 3000);
     }
 
-    //---------------------------
-    // nap cooldown
-    //---------------------------
-
-    if (action.name === "Nap" && action.cooldown) { //checking if action is nap and has cooldown defined
-      setNapUntil(Date.now() + action.cooldown * 60 * 1000); //setting nap end time
-      open(
-        <div className="bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg">
-          Your chameleon is now napping for {action.cooldown} minutes.
-        </div>,
-        3000
-      );
+    // ----- NAP -----
+    if (action.name === "Nap" && action.cooldown) {
+      setNapUntil(Date.now() + action.cooldown * 60 * 1000);
+      open(<div className="bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg">Your chameleon is now napping for {action.cooldown} minutes.</div>, 3000);
     }
 
-    //---------------------------
-    //Energy
-    //---------------------------
-
-    if (action.energyValue !== undefined) { 
-      if (energy + action.energyValue>100){ //checking if energy exceeds 100
-        setEnergy(100);
-        open(
-        <div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">
-          Energy is at maximum!
-        </div>,
-        3000
-        );
-        return;
-      } else if (energy + action.energyValue<0){ //checking if energy goes below 0
-        setEnergy(0);
-        open(
-        <div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">
-          Your chameleon is too tired to do that!
-        </div>,
-        3000
-        );
-        return;
-      } else {
-      setEnergy(energy + action.energyValue);
-      }
-    }
-    //---------------------------
-    //popupteest
-    //---------------------------
-    if (action.popuptest !== undefined && action.popuptest==true){
-      setOpenModal(true)
+    // ----- ENERGY -----
+    if (action.energyValue !== undefined) {
+      if (energy + action.energyValue > 100) setEnergy(100), open(<div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">Energy is at maximum!</div>, 3000);
+      else if (energy + action.energyValue < 0) setEnergy(0), open(<div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">Your chameleon is too tired to do that!</div>, 3000);
+      else setEnergy(energy + action.energyValue);
     }
 
-    //---------------------------
-    //Happiness
-    //---------------------------
-
+    // ----- HAPPINESS -----
     if (action.happinessValue !== undefined) {
-      if (happiness + action.happinessValue>100){ //checking if happiness exceeds 100
-        setHappiness(100);
-        return;
-      } else {
-      //happiness value for bar
-      setHappiness(happiness + action.happinessValue);
-      }
+      setHappiness(Math.min(100, happiness + action.happinessValue));
     }
 
-    //---------------------------
-    //Hydration
-    //---------------------------
-
+    // ----- HYDRATION -----
     if (action.hydrationValue !== undefined) {
-      if (hydration + action.hydrationValue>100){ //checking if hydration exceeds 100
-        setHydration(100);
-        open(
-        <div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">
-          Your chameleon is not thirsty .
-        </div>,
-        3000
-        );
-        return;
-      } else {
-      //hydration  value for bar
-      setHydration(hydration + action.hydrationValue);
-      }
+      setHydration(Math.min(100, hydration + action.hydrationValue));
     }
+    // ----- COOLDOWNS -----
+    if (action.cooldown!==undefined) setCooldowns(prev => ({ ...prev, [action.name]: Date.now() + action.cooldown * 60 * 1000 }));
 
-    //---------------------------
-    // Coins/Cost Handling
-    //---------------------------
-    
-    if (action.cost !== undefined) {
-      setCoins(coins - action.cost);
-      const audio = new Audio(dingSound); //audio object + noise for informing user of earning/spending coins
-      audio.play();
-    }
-
-    // if action has a cooldown defined, set its cooldown timestamp
-    if (action.cooldown !== undefined && action.cooldown > 0) {
-      setCooldowns((prev) => ({ ...prev, [action.name]: Date.now() + (action.cooldown as number) * 60 * 1000 }));
-    }
-
-    // mark locked actions as used so they cant be used again
-    if (action.hasLock) {
-      setLockedActions(prev => new Set(prev).add(action.name));
-    }
+    // ----- LOCKED ACTIONS -----
+    if (action.hasLock) setLockedActions(prev => new Set(prev).add(action.name));
   };
-  
+
+  //---------------------------
+  // Render
+  //---------------------------
   return (
     <div className="four-buttons-wrapper">
-      {/*display coins*/}
       <Money coins={coins} />
       <FoodInventory foodInventory={foodInventory} />
-      {/*------------------------------------------*/}
-      {/*NAP TIME DISPLAY*/}
-      {/*------------------------------------------*/}
-      {napUntil !== null && napUntil > Date.now() && (
-        (() => {
-          const ms = napUntil - Date.now();
-          const totalSeconds = Math.ceil(ms / 1000);
-          const minutes = Math.floor(totalSeconds / 60);
-          const seconds = totalSeconds % 60;
-          const label = `${minutes}:${seconds.toString().padStart(2, "0")}`;
-          const style: React.CSSProperties = { //styling for nap time display
-            position: "fixed",
-            top: 55,
-            left: "50%",
-            transform: "translateX(-50%)",
-            backgroundColor: "#000000ff",
-            color: "white",
-            padding: "6px 10px",
-            borderRadius: 6,
-            zIndex: 1200,
-            fontWeight: "bold",
-          };
-          return <div style={style}>Napping — {label} remaining</div>;
-        })()
-      )}
-      <HealthBars 
-        energy={energy}
-        hunger={hunger}
-        happiness={happiness}
-        health={health}
-        hydration={hydration}
-        temperature={temperature}
-        onIncreaseTemp={() => setTemperature((t) => Math.min(150, t + 1))}
-        onDecreaseTemp={() => setTemperature((t) => Math.max(30, t - 1))}
-      />
 
+      <HealthBars energy={energy} hunger={hunger} happiness={happiness} health={health} hydration={hydration} temperature={temperature}
+        onIncreaseTemp={() => setTemperature((t) => Math.min(150, t + 1))}
+        onDecreaseTemp={() => setTemperature((t) => Math.max(30, t - 1))} />
+
+      {/* Restart modal */}
       <Modal isOpen={openModal} onClose={() => setOpenModal(false)}>
         <div className="text-center w-56">
           <h2>Restart Game?</h2>
-
           <div className="mx-auto my-4 w-48">
-
-          <h3 className="text-lg font-black text-gray-800">You {win_lose} </h3>
-
+            <h3 className="text-lg font-black text-gray-800">You {win_lose}</h3>
           </div>
-        <div className="flex gap-4">
-          <button 
-          className="btn btn-danger w-full"
-          onClick={restartGame}
-          >Restart
-          </button>
+          <div className="flex gap-4">
+            <button className="btn btn-danger w-full" onClick={restartGame}>Restart</button>
+          </div>
         </div>
-        </div>
-        
       </Modal>
 
-      {/*mainbuttons and the function to show subbuttons*/}
+      {/* Earn modal */}
+      <Modal isOpen={earnModalOpen} onClose={() => setEarnModalOpen(false)}>
+        <div className="text-center w-64">
+          <h2>Add Earn Action</h2>
+          <input className="input" placeholder="Action Name" value={newEarnName} onChange={e => setNewEarnName(e.target.value)} />
+          <input className="input mt-2" type="number" placeholder="Coins to give" value={newEarnCoins} onChange={e => setNewEarnCoins(Number(e.target.value))} />
+          <button className="btn btn-primary mt-2 w-full" onClick={() => {
+            if (!newEarnName) return;
+            const newAction: Action = { name: newEarnName, cost: -Math.abs(newEarnCoins), cooldown: 15 };
+            setDynamicEarnActions(prev => [...prev, newAction]);
+            open(<div className="bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg">Added new Earn action: {newAction.name}</div>, 3000);
+            setNewEarnName(""); setNewEarnCoins(20); setEarnModalOpen(false);
+          }}>Add</button>
+        </div>
+      </Modal>
+
+      {/* Main buttons */}
       <div className="main-buttons">
-        {(Object.keys(actions) as Category[]).map((category) => (
-          <button
-            key={category}
-            className={`main-btn ${active === category ? "active" : ""}`}
-            onClick={() => toggleCategory(category)} // showing subbuttons from predifened function
-          >
+        {(Object.keys(actions) as Category[]).map(category => (
+          <button key={category} className={`main-btn ${active === category ? "active" : ""}`} onClick={() => toggleCategory(category)}>
             {category}
           </button>
         ))}
       </div>
 
-      {/*subbuttons and their functions*/}
+      {/* Subbuttons */}
       {active && (
         <div className="sub-buttons">
-          {/*------------------------------------------*/}
-          {/*Mapping through actions to create subbuttons*/}
-          {/*------------------------------------------*/}
-
-
-          {actions[active].map((action) => {
-            const cannotAfford =
-              action.cost !== undefined && action.cost > 0 && coins < action.cost; // disable if not enough coins
-            const isTier2LockedTrick = action.tiertwotrick === true && !trickt2unlocked; // disable if tier 2 trick not unlocked
-            const isAlreadyUsed = action.hasLock && lockedActions.has(action.name); // disable if locked action already used
-            const napActive = napUntil !== null && napUntil > Date.now(); // check if nap is active
-            const isShopOrEarn =
-              actions.Shop.some((a) => a.name === action.name) || 
-              actions.Earn.some((a) => a.name === action.name); // check if action is from Shop or Earn category
-            const cooldownEnd = cooldowns[action.name] ?? 0; // get cooldown end time for this action
-            const cooldownRemaining = Math.max(0, cooldownEnd - Date.now()); // calculate remaining cooldown time
-            const hasCooldownActive = cooldownRemaining > 0; // disable if action is on cooldown
-            const disabled =
-              cannotAfford || isTier2LockedTrick || isAlreadyUsed || (napActive && !isShopOrEarn) || hasCooldownActive; // overall disabled state
-
-            //---------------------------
-            // Format milliseconds to mm:ss
-            //---------------------------
-            const formatMs = (ms: number) => {
-              const totalSeconds = Math.ceil(ms / 1000);
-              const minutes = Math.floor(totalSeconds / 60);
-              const seconds = totalSeconds % 60;
-              return `${minutes}:${seconds.toString().padStart(2, "0")}`;
-            };
-
+          {[...actions[active], ...(active === "Earn" ? dynamicEarnActions : [])].map(action => {
+            const cooldownEnd = cooldowns[action.name] ?? 0;
+            const cooldownRemaining = Math.max(0, cooldownEnd - Date.now());
+            const disabled = cooldownRemaining > 0; // add other disable logic if needed
+            const formatMs = (ms: number) => { const total = Math.ceil(ms/1000); return `${Math.floor(total/60)}:${(total%60).toString().padStart(2,"0")}`; };
             return (
-              <>
-              <button
-                key={action.name}
-                className="sub-btn"
-                disabled={disabled}
-                onClick={() => handleActionClick(action)}
-              >
-                {action.name} {/* displays action name */}
-                {action.cost !== undefined && ` — $${Math.abs(action.cost)}`} {/* earning coins if negative cost */}
-                {actions.Earn.some((a) => a.name === action.name) && hasCooldownActive && ` — ${formatMs(cooldownRemaining)}`} {/* show cooldown timer for earn actions */}
+              <button key={action.name} className="sub-btn" disabled={disabled} onClick={() => handleActionClick(action)}>
+                {action.name} {action.cost !== undefined && `— $${Math.abs(action.cost)}`} {cooldownRemaining>0 && `— ${formatMs(cooldownRemaining)}`}
               </button>
-              </>
             );
           })}
+
+          {/* Add Earn action button */}
+          {active === "Earn" && (
+            <button className="sub-btn" onClick={() => setEarnModalOpen(true)}>+ Add Earn Action</button>
+          )}
         </div>
       )}
     </div>

@@ -14,7 +14,6 @@ import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
 import { RestartAnytime } from "./components/restart";
 import { RestartProvider } from "./components/RestartContext";
 
-
 export default function App() {
   const [selectedChameleon, setSelectedChameleon] =
     useState<Chameleon | null>(null);
@@ -26,57 +25,101 @@ export default function App() {
   );
 
   return (
-    <GoogleOAuthProvider
-      clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID!}
-    >
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID!}>
       <Router>
         <AppWithRestart
-          setSelectedChameleon={setSelectedChameleon}
-          setPetName={setPetName}
           selectedChameleon={selectedChameleon}
           petName={petName}
+          setSelectedChameleon={setSelectedChameleon}
+          setPetName={setPetName}
         />
       </Router>
     </GoogleOAuthProvider>
   );
 }
 
-
-
 function AppWithRestart({
-  setSelectedChameleon,
-  setPetName,
   selectedChameleon,
   petName,
+  setSelectedChameleon,
+  setPetName,
 }: {
-  setSelectedChameleon: (c: Chameleon | null) => void;
-  setPetName: (name: string) => void;
   selectedChameleon: Chameleon | null;
   petName: string;
+  setSelectedChameleon: (c: Chameleon | null) => void;
+  setPetName: (name: string) => void;
 }) {
   const navigate = useNavigate();
 
-  // SINGLE SOURCE OF TRUTH
+  // modal state
+  const [showRestartModal, setShowRestartModal] = useState(false);
+
+  // restart thing actually happening
   const restartGame = () => {
     console.log("Restart triggered");
     setSelectedChameleon(null);
     setPetName("");
+    setShowRestartModal(false);
     navigate("/");
   };
 
   return (
     <RestartProvider value={{ restartGame }}>
-      {/* Global restart button (always visible) */}
-      <RestartAnytime onRestart={restartGame} />
+      {/* GLOBAL RESTART BUTTON */}
+      <RestartAnytime onRestart={() => setShowRestartModal(true)} />
+
+      {/* CONFIRMATION MODAL */}
+      {showRestartModal && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.6)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 2000,
+          }}
+        >
+          <div
+            style={{
+              background: "white",
+              padding: 20,
+              borderRadius: 8,
+              width: 300,
+              textAlign: "center",
+            }}
+          >
+            <h2 
+            className="text-lg font-black text-gray-800"
+            >Restart Game?</h2>
+            <p
+            className="text-sm text-gray-500"
+            >Your progress will be lost.</p>
+
+              <div className="flex gap-4">
+              <button 
+              onClick={restartGame} 
+              className="btn btn-danger w-full">
+                Confirm
+              </button>
+
+              <button 
+              onClick={() => setShowRestartModal(false)}
+              className="btn btn-light w-full">
+                Cancel
+              </button>
+              </div>
+          </div>
+        </div>
+      )}
 
       <Routes>
-        {/* Choose a chameleon */}
         <Route
           path="/"
           element={<ChoosePage onSelect={setSelectedChameleon} />}
         />
 
-        {/* Name the chameleon */}
         <Route
           path="/name"
           element={
@@ -91,7 +134,6 @@ function AppWithRestart({
           }
         />
 
-        {/* Dashboard (FourButtons lives here) */}
         <Route
           path="/dashboard"
           element={
@@ -107,7 +149,6 @@ function AppWithRestart({
         />
       </Routes>
 
-      {/* Google login (optional placement) */}
       <GoogleLogin
         onSuccess={(credentialResponse) => {
           console.log(credentialResponse);
