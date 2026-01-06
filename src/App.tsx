@@ -1,3 +1,4 @@
+// src/App.tsx
 import React, { useState } from "react";
 import {
   BrowserRouter as Router,
@@ -5,27 +6,58 @@ import {
   Route,
   useNavigate,
 } from "react-router-dom";
+
+import SPLoader from "./components/loading";
+import StartPage from "./screens/start-page";
+import LoggingIn from "./screens/login";
 import { BoxComponent } from "./components/chameleonChooser";
 import type { Chameleon } from "./components/chameleonChooser";
 import { ChameleonNaming } from "./components/chameleonNaming";
 import Dashboard from "./screens/dashboard";
 
-export default function App() {
+function AppRoutes() {
   const [selectedChameleon, setSelectedChameleon] = useState<Chameleon | null>(
     null
   );
   const [petName, setPetName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const [health, setHealth] = useState(100);
+  const [hunger, setHunger] = useState(100);
+  const [happiness, setHappiness] = useState(100);
+  const [energy, setEnergy] = useState(100);
 
   return (
-    <Router>
+    <>
+      {loading && <SPLoader />}
+
       <Routes>
-        {/* 1️⃣ Choose a chameleon */}
+        {/* 0️⃣ Start screen */}
+        <Route path="/" element={<StartPage />} />
+
+        {/* 1️⃣ Login */}
         <Route
-          path="/"
+          path="/login"
+          element={
+            <LoggingIn
+              onPlayAsGuest={() => {
+                setLoading(true);
+                setTimeout(() => {
+                  setLoading(false);
+                  navigate("/choose");
+                }, 500);
+              }}
+            />
+          }
+        />
+
+        {/* 2️⃣ Choose a chameleon */}
+        <Route
+          path="/choose"
           element={<ChoosePage onSelect={setSelectedChameleon} />}
         />
 
-        {/* 2️⃣ Name the chameleon */}
+        {/* 3️⃣ Name the chameleon */}
         <Route
           path="/name"
           element={
@@ -40,7 +72,7 @@ export default function App() {
           }
         />
 
-        {/* 3️⃣ Dashboard */}
+        {/* 4️⃣ Dashboard */}
         <Route
           path="/dashboard"
           element={
@@ -49,6 +81,10 @@ export default function App() {
                 petName={petName}
                 petType={selectedChameleon.name}
                 image={selectedChameleon.image}
+                health={health}
+                hunger={hunger}
+                happiness={happiness}
+                energy={energy}
               />
             ) : (
               <div>Please complete the steps first.</div>
@@ -56,10 +92,23 @@ export default function App() {
           }
         />
       </Routes>
+    </>
+  );
+}
+
+export default function App() {
+  return (
+    <Router>
+      <AppRoutes />
     </Router>
   );
 }
 
+/* =========================
+   Page Components
+   ========================= */
+
+// Choose a chameleon
 function ChoosePage({ onSelect }: { onSelect: (ch: Chameleon) => void }) {
   const navigate = useNavigate();
 
@@ -67,12 +116,13 @@ function ChoosePage({ onSelect }: { onSelect: (ch: Chameleon) => void }) {
     <BoxComponent
       onContinue={(chameleon) => {
         onSelect(chameleon);
-        navigate("/name"); // 🔥 use navigate() instead of window.location
+        navigate("/name");
       }}
     />
   );
 }
 
+// Name the chameleon
 function NamePage({
   chameleon,
   onNameSubmit,
@@ -87,7 +137,7 @@ function NamePage({
       chameleon={chameleon}
       onContinue={(name) => {
         onNameSubmit(name);
-        navigate("/dashboard"); // 🔥 also use navigate() here
+        navigate("/dashboard");
       }}
     />
   );

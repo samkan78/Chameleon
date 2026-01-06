@@ -15,7 +15,6 @@ body {
   font-family: "Franklin Gothic Medium", "Arial Narrow", Arial, sans-serif;
 }
 
-
 /* Custom component classes */
 @layer components {
   .App {
@@ -36,5 +35,5 @@ body {
 
   .btn.btn-info {
     @apply text-white bg-blue-600 shadow-blue-400/40;
-  } 
+  }
 }

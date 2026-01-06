@@ -1,11 +1,11 @@
-// Money.tsx
 import React from "react";
 
+//setting the props for monetary value will be used in fourbuttons.tsx
 type MoneyProps = {
   coins: number;
 };
-
-const Money: React.FC<MoneyProps> = ({ coins }) => {
+//Show number of coins/money in top-right corner
+export const Money: React.FC<MoneyProps> = ({ coins }) => {
   return (
     <div style={{ position: "fixed", top: 10, right: 10, zIndex: 1000 }}>
       <button
@@ -22,5 +22,3 @@ const Money: React.FC<MoneyProps> = ({ coins }) => {
     </div>
   );
 };
-
-export default Money;

@@ -1,33 +1,44 @@
 import React from "react";
-import "../screens/dashboard.css";
+import ImageBox from "../components/image";
+import "./dashboard.css";
 import FourButtons from "../components/fourbuttons";
 import HowToPlay from "../components/helpButton";
-import TemperatureBar from "../components/temperature";
-//defining the petname and pettype as props
+import { Money } from "../components/money"; // Import Money component
+import DashboardInformation from "../components/dashboardHeading";
+import { YearsOld } from "../components/age";
+// Defining the petName, petType, image, and years as props
 interface ChameleonDashboard {
   petName: string;
   petType: string;
-  image: string;
+  image: string; // We need this
+  health: number;
+  hunger: number;
+  happiness: number;
+  energy: number;
 }
 
 const Dashboard: React.FC<ChameleonDashboard> = ({
   petName,
   petType,
-  image,
+  image, // Receive the selected image
+  health,
+  hunger,
+  happiness,
+  energy,
 }) => (
   <div className="dashboard-root">
     <aside className="left-panel">
-      <img src={image} alt={petType} />
+      {/* Show the chameleon selected earlier */}
+      <ImageBox src={image} />
     </aside>
 
-    {/*components to display the health and actions of the chameleon as well as the help button and more*/}
     <main className="dashboard-main">
-      <h2>Chameleon Dashboard</h2>
-      <p>Pet Name: {petName}</p>
-      <p>Pet Type: {petType}</p>
-      <TemperatureBar currentTemp={30} minTemp={0} maxTemp={110} />
+      <DashboardInformation petName={petName} petType={petType} />
+      {/* Display other components */}
       <FourButtons />
       <HowToPlay />
+      {/* Display Money component with the current years */}
+      {/* Pass years to Money component */}
     </main>
   </div>
 );
