@@ -4,13 +4,14 @@ import "./dashboard.css";
 import FourButtons from "../components/fourbuttons";
 import HowToPlay from "../components/helpButton";
 
-//defining the petname and pettype as props
+//defining the petname, pettype, and userId as props
 interface ChameleonDashboard {
   petName: string;
   petType: string;
+  userId: string | null;
 }
 
-const Dashboard: React.FC<ChameleonDashboard> = ({ petName, petType }) => (
+const Dashboard: React.FC<ChameleonDashboard> = ({ petName, petType, userId }) => (
   <div className="dashboard-root">
     <aside className="left-panel">
       {/*using the imagebox to display chameleon images and animations */}
@@ -21,7 +22,7 @@ const Dashboard: React.FC<ChameleonDashboard> = ({ petName, petType }) => (
       <h2>Chameleon Dashboard</h2>
       <p>Pet Name: {petName}</p>
       <p>Pet Type: {petType}</p>
-      <FourButtons />
+      <FourButtons userId={userId} />
       <HowToPlay />
     </main>
   </div>

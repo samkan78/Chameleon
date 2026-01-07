@@ -6,7 +6,8 @@ import HealthBars from "./healthbars";
 import ToastContext from "./ToastService";
 import Modal from "./modal.tsx";
 import { useRestart } from "./RestartContext";
-
+import { doc, setDoc, getDoc } from "firebase/firestore";
+import { db } from "../firebase";
 // ---------------------------
 // defining categories and actions
 // ---------------------------
@@ -45,7 +46,8 @@ const actions: Record<Category, Action[]> = {
     { name: "Misting", hydrationValue: 20, cost: 4 },
     { name: "Feed", hungerValue: 15, hasFood: true },
     { name: "Nap", energyValue: 25, cooldown: 2 },
-    { name: "testing for the dev", energyValue:10,hungerValue:10,hydrationValue:10,healthValue:10,happinessValue:10 },
+    { name: "testing for the dev", energyValue:10,hungerValue:10,hydrationValue:10,healthValue:10,happinessValue:10},
+    { name: "testing for dev 2", energyValue: -10, hungerValue: -10, healthValue: -10, happinessValue: -10}
   ],
   Tricks: [
     { name: "Climbing Practice", energyValue: -20, happinessValue: 10, hasLock: true },
@@ -109,7 +111,7 @@ const temperatureStart = randomNumberInRange(60, 90);
 // ---------------------------
 // main component
 // ---------------------------
-const FourButtons: React.FC = () => {
+const FourButtons: React.FC<{ userId: string | null }> = ({ userId }) => {
   const { open } = useContext(ToastContext);
   const { restartGame } = useRestart();
 
@@ -143,7 +145,7 @@ const FourButtons: React.FC = () => {
   const [earnModalOpen, setEarnModalOpen] = useState(false);
   const [newEarnName, setNewEarnName] = useState("");
   const [newEarnCoins, setNewEarnCoins] = useState<number>(20);
-
+ 
   //---------------------------
   // Tick interval for countdowns
   //---------------------------
@@ -170,6 +172,189 @@ const FourButtons: React.FC = () => {
     const interval = setInterval(checkAndChange, 1000);
     return () => clearInterval(interval);
   }, [tempChangeUntil]);
+
+  //-------------------
+  //death stuff
+  //-------------------
+
+  useEffect(() => {
+  // Count how many stats are at or below 0
+  const stats = [energy, hunger, hydration, happiness, health];
+  const statsAtZero = stats.filter(stat => stat <= 0).length;
+  
+  // If 2 or more stats hit zero, the chameleon dies
+  if (statsAtZero >= 2) {
+    setWin_lose('LOST - Your chameleon died from neglect 💀');
+    setOpenModal(true);
+  }
+  }, [energy, hunger, hydration, happiness, health]);
+
+// Also update your modal to handle the loss case better:
+// In your modal, change the regular restart screen section to:
+
+  useEffect(() => {
+  if (userId) {
+    loadGameData(userId);
+  }
+}, [userId]);
+
+  const saveGameData = async (uid: string) => {
+  try {
+    await setDoc(doc(db, "users", uid), {
+      coins,
+      level,
+      energy,
+      hunger,
+      hydration,
+      happiness,
+      health,
+      temperature,
+      foodInventory,
+      trickt2unlocked,
+      unlockedEarnSpots,
+      dynamicEarnActions,
+      lastSaved: new Date().toISOString()
+    }, { merge: true }); 
+    console.log("Game saved!");
+    console.log("Saving as UID:", uid);
+  } catch (error) {
+    console.error("Error saving game:", error);
+    console.log("Saving as UID:", uid);
+  }
+};
+const loadGameData = async (uid: string) => {
+  try {
+    const docSnap = await getDoc(doc(db, "users", uid));
+    
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      
+      // Load all the saved data
+      setCoins(data.coins || 50);
+      setlevel(data.level || 1);
+      setEnergy(data.energy || 50);
+      setHunger(data.hunger || 50);
+      setHydration(data.hydration || 50);
+      setHappiness(data.happiness || 50);
+      setHealth(data.health || 50);
+      setTemperature(data.temperature || 75);
+      setFoodInventory(data.foodInventory || 0);
+      setTrickt2unlocked(data.trickt2unlocked || false);
+      setunlockedEarnSpots(data.unlockedEarnSpots || 1);
+      setDynamicEarnActions(data.dynamicEarnActions || []);
+      
+      open(
+        <div className="bg-blue-500 text-white px-4 py-3 rounded-lg shadow-lg">
+          Welcome back! Game loaded.
+        </div>,
+        3000
+      );
+    } else {
+      console.log("No saved game found, starting fresh!");
+    }
+  } catch (error) {
+    console.error("Error loading game:", error);
+  }
+};
+useEffect(() => {
+  if (!userId) return;
+  
+  const interval = setInterval(() => {
+    // Save with current values directly
+    setDoc(doc(db, "users", userId), {
+      coins,
+      level,
+      energy,
+      hunger,
+      hydration,
+      happiness,
+      health,
+      temperature,
+      foodInventory,
+      trickt2unlocked,
+      unlockedEarnSpots,
+      dynamicEarnActions,
+      lastSaved: new Date().toISOString()
+    }, { merge: true }).then(() => {
+      console.log("Game saved!");
+    }).catch((error) => {
+      console.error("Error saving game:", error);
+    });
+  }, 10000);
+  
+  return () => clearInterval(interval);
+}, [userId, coins, level, energy, hunger, hydration, happiness, health, 
+    temperature, foodInventory, trickt2unlocked, unlockedEarnSpots, dynamicEarnActions]);
+
+// Regular Restart/Loss Screen
+  <>
+  <div className="text-5xl mb-4">😢</div>
+  <h2 className="text-2xl font-bold text-red-600 mb-2">Game Over</h2>
+  <div className="mx-auto my-4 w-64">
+    <h3 className="text-lg font-black text-gray-800">{win_lose}</h3>
+  </div>
+  <div className="flex gap-4">
+    <button 
+      className="btn btn-danger w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg"
+      onClick={restartGame}
+    >
+      Try Again
+    </button>
+  </div>
+  </>
+
+
+  //--------------------------
+  //level system for evolution
+  //--------------------------
+  useEffect(() => {
+  // Count how many stats are above 90
+  const stats = [energy, hunger, hydration, happiness, health];
+  const statsAbove90 = stats.filter(stat => stat > 90).length;
+  
+  // Calculate required stats based on current level
+  const requiredStats = level + 1; // Level 1 needs 2 stats, Level 2 needs 3 stats, etc.
+  
+  // Check if player has enough stats above 90 to level up
+  if (statsAbove90 >= requiredStats) {
+    const newLevel = level + 1;
+    if (level==3){
+      setWin_lose('WIN');
+      setOpenModal(true);
+      if (userId) saveGameData(userId);
+    }
+    // Level up and reset all stats to 50
+    setlevel(newLevel);
+    setunlockedEarnSpots(newLevel);
+    setEnergy(50);
+    setHunger(50);
+    setHydration(50);
+    setHappiness(50);
+    setHealth(50);
+    
+    open(
+      <div className="bg-purple-500 text-white px-4 py-3 rounded-lg shadow-lg font-bold">
+        LEVEL UP! You're now Level {newLevel}! 
+        <br />
+        Stats reset to 50. Unlocked {newLevel} Earn action slots!
+      </div>,
+      4000
+      );
+    }
+  }, [energy, hunger, hydration, happiness, health, level, open]);
+
+  type LevelDisplayProps = { level: number };
+  const LevelDisplay: React.FC<LevelDisplayProps> = ({ level }) => {
+    return (
+      <div style={{ position: "fixed", top: 110, right: 10, zIndex: 1000 }}>
+        <h1>Level: {level}</h1>
+      </div>
+    );
+  };
+
+
+
+
 
   // Toggle main category
   const toggleCategory = (category: Category) => setActive(active === category ? null : category);
@@ -279,6 +464,7 @@ const FourButtons: React.FC = () => {
       if (energy + action.energyValue > 100){ 
         setEnergy(100)
         open(<div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">Energy is at maximum!</div>, 3000);
+        return;
       } else if (energy + action.energyValue < 0) {
         open(<div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">Your chameleon is too tired to do that!</div>, 3000);
         return;
@@ -312,7 +498,8 @@ const FourButtons: React.FC = () => {
     }
     // ----- COOLDOWNS -----
     if (action.cooldown !== undefined){
-      setCooldowns(prev => ({ ...prev, [action.name]: Date.now() + action.cooldown * 60 * 1000 }));
+    const cooldownMs = action.cooldown * 60 * 1000;
+    setCooldowns(prev => ({ ...prev, [action.name]: Date.now() + cooldownMs }));
     }
 
     // ----- LOCKED ACTIONS -----
@@ -328,6 +515,7 @@ const FourButtons: React.FC = () => {
     <div className="four-buttons-wrapper">
       <Money coins={coins} />
       <FoodInventory foodInventory={foodInventory} />
+      <LevelDisplay level={level} />
 
       <HealthBars energy={energy} hunger={hunger} happiness={happiness} health={health} hydration={hydration} temperature={temperature}
         onIncreaseTemp={() => setTemperature((t) => Math.min(150, t + 1))}
