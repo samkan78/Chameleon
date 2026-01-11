@@ -24,12 +24,16 @@ export default function HowToPlay() {
               4. Use the in-game currency to purchase items from the store to
               take care of your chameleon and maintains the energy, hunger,
               happiness, temperature comfort, and hydration stats. Make sure the
-              chameleon is kept happy and healthy!
+              chameleon is kept happy and healthy! All of the stat bars will
+              decrease every 2 minutes so make sure they do not decrease all the
+              way! You can buy food from shop before you feed your chameleon.
+              You need to get above a 90% on all the levels for your chameleon
+              to move on to the next level.
             </p>
             <p>
-              5. Make your chameleon learn tricks to gain in-game currency.
-              However, be mindful of its energy levels and do not overexert your
-              chameleon.
+              5. Make your chameleon learn tricks to gain in-game currency. You
+              can also do chores to gain in-game currency. However, be mindful
+              of its energy levels and do not overexert your chameleon.
             </p>
 
             {/* Close popup */}

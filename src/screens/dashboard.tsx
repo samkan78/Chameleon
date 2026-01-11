@@ -20,27 +20,33 @@ interface ChameleonDashboard {
 const Dashboard: React.FC<ChameleonDashboard> = ({
   petName,
   petType,
-  image, // Receive the selected image
+  image,
   health,
   hunger,
   happiness,
   energy,
 }) => (
   <div className="dashboard-root">
-    <aside className="left-panel">
-      {/* Show the chameleon selected earlier */}
-      <ImageBox src={image} />
-    </aside>
+    {/* Top Header Section */}
+    <DashboardInformation petName={petName} petType={petType} />
+    {/* The Main Flex Container */}{" "}
+    <div className="central-action-area">
+      {/* 1. LEFT: Health Bars */}
 
-    <main className="dashboard-main">
-      <DashboardInformation petName={petName} petType={petType} />
-      {/* Display other components */}
-      <FourButtons />
+      {/* 2. MIDDLE: Chameleon Image */}
+      <section className="chameleon-display">
+        <ImageBox src={image} />
+      </section>
+
+      {/* 3. RIGHT: Four Buttons */}
+      <aside className="controls-panel">
+        <FourButtons />
+      </aside>
+    </div>
+    {/* Bottom/Miscellaneous Section */}
+    <footer className="dashboard-footer">
       <HowToPlay />
-      {/* Display Money component with the current years */}
-      {/* Pass years to Money component */}
-    </main>
+    </footer>
   </div>
 );
-
 export default Dashboard;

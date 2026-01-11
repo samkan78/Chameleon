@@ -1,17 +1,24 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import playButton from "../assets/play-button.png";
-import "../components/startScreens.css";
+import "../components/start-and-login.css";
 
 export default function StartPage() {
   const navigate = useNavigate();
 
   return (
     <div className="play-container">
-      <h1 className="title">Chameleon App</h1>
-      <button className="play-button" onClick={() => navigate("/login")}>
-        <img src={playButton} alt="Play button" />
-      </button>
+      <div className="content-container">
+        <h1 className="title">
+          <span className="title-chameleon">Chameleon App</span>
+        </h1>
+        <p className="desc">Description</p>
+        <button className="play-button" onClick={() => navigate("/login")}>
+          <svg className="play-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8 5v14l11-7z" />
+          </svg>
+          Play Now
+        </button>
+      </div>
     </div>
   );
 }

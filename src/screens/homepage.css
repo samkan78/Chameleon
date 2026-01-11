@@ -1,98 +1,322 @@
+@import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@400;600;700&display=swap");
+
+/* Page background */
+body {
+  background: #3488cd;
+  font-family: "Nunito", sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+/* Full screen container */
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
 .app-heading h1 {
-  font-size: 50px;
+  font-size: 3.5rem;
   text-align: center;
+  font-family: "Fredoka", sans-serif;
+  color: white;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 4px 0 rgba(0, 0, 0, 0.1);
 }
 
 .app-heading h2 {
-  font-size: 30px;
+  font-size: 1.5rem;
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 2rem;
+  font-family: "Nunito", sans-serif;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+}
+
+.box-container {
+  /* white box */
+  border: none;
+  padding: 2rem 2rem;
+  margin: 0 auto;
+  border-radius: 50px;
+
+  background-color: white;
+  max-width: 550px;
+  width: 100%;
+  text-align: center;
 }
 
 .box-container h1 {
   /*Choose your chameleon heading */
-  font-size: 40px;
+  font-size: 2.25rem;
   text-align: center;
   margin-top: 0;
-  margin-bottom: 0px;
+  margin-bottom: 1rem;
+  font-family: "Fredoka", sans-serif;
+  color: #1fcc1f;
+  font-weight: 700;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.05);
 }
 
 .box-container h2 {
   /*name of chameleon */
-  font-size: 25px;
+  font-size: 1.5rem;
   text-align: center;
-  margin-bottom: 5px;
-  margin-top: 0px;
+  margin-bottom: 0.5rem;
+  margin-top: 0.75rem;
+  font-family: "Fredoka", sans-serif;
+  color: #1fcc1f;
+  font-weight: 700;
 }
 
 .box-container p {
   /*description of chameleon */
-  font-size: 18px;
+  font-size: 0.9375rem;
   text-align: center;
-  margin-bottom: 10px;
+  margin-bottom: 1rem;
+  color: #60667c;
+  font-weight: 600;
+  line-height: 1.5;
+  padding: 0 1rem;
 }
 
 .box-container img {
   /* chameleon image */
   display: block;
-  margin: 5px auto; /* auto centers horizontally */
-  max-width: 50%; /* scales image down */
+  margin: 0.5rem auto;
+  max-width: 45%;
   height: auto;
-}
-
-.box-container {
-  /* white box */
-  border: 2px solid #ccc;
-  padding: 20px;
-  margin: 20px auto;
-  border-radius: 50px; /* Rounded corners */
-  box-shadow: 0 15px 0px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-  background-color: #f9f9f9; /* Light background */
-  max-width: 600px; /* Optional: control the maximum width */
-  text-align: center; /* Center content inside the box */
-  /* Center the box itself to the middle of the screen */
 }
 
 /* chameleon Chooser css */
 .arrow-and-chameleons {
   /* container for arrows and chameleon image */
-  display: flex; /* makes them align horizontally */
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 20px;
-  margin: 20px 0;
-  margin-bottom: 0px;
+  gap: 1rem;
+  margin: 1rem 0;
+  margin-bottom: 0;
+}
+
+.left-arrow-btn,
+.right-arrow-btn {
+  background: linear-gradient(145deg, #ffffff, #f0f0f0);
+  border: none;
+  border-radius: 50%;
+  width: 55px;
+  height: 55px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 5px 0 #d0d0d0, 0 6px 15px rgba(0, 0, 0, 0.1);
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.left-arrow-btn:hover,
+.right-arrow-btn:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 7px 0 #d0d0d0, 0 9px 20px rgba(0, 0, 0, 0.15);
+}
+
+.left-arrow-btn:active,
+.right-arrow-btn:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 3px 0 #d0d0d0, 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .arrow {
-  /* left and right arrows image */
-  width: 100px; /* changes the width of the arrows */
-  cursor: pointer;
-  transition: transform 0.3s ease;
-  padding: 0;
+  /* left and right arrows */
+  width: 28px;
+  height: 28px;
   display: block;
+  color: #60667c;
+  transition: color 0.3s ease;
 }
 
-.arrow:hover {
-  transform: scale(1.1);
+.left-arrow-btn:hover .arrow,
+.right-arrow-btn:hover .arrow {
+  color: #1fcc1f;
 }
 
-.left-arrow-btn, /* left and right arrow buttons */
-.right-arrow-btn {
-  background: none;
-  border: none;
-  padding: 0;
+.continue-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.875rem 2.5rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: white;
+  background: #33cc53;
+  border: 4px solid #088522;
+  border-radius: 50px;
   cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: "Fredoka", sans-serif;
+  box-shadow: 0 6px 0 #088522, 0 10px 20px rgba(8, 133, 34, 0.3);
+  margin-top: 1rem;
+}
+
+.continue-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 0 #088522, 0 12px 25px rgba(8, 133, 34, 0.4);
+}
+
+.continue-btn:active {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 0 #088522, 0 6px 15px rgba(8, 133, 34, 0.3);
 }
 
 .name-input {
-  font-size: 20px;
-  padding: 10px;
+  font-size: 1rem;
+  padding: 0.875rem 1.5rem;
   border-radius: 50px;
-  border: 1px solid #ccc;
-  width: 80%;
+  border: 4px solid #e0e0e0;
+  width: 85%;
   max-width: 400px;
   text-align: center;
-  margin: 10px auto;
+  margin: 1rem auto;
   display: block;
+  font-family: "Nunito", sans-serif;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 5px 0 #d0d0d0, 0 6px 15px rgba(0, 0, 0, 0.08);
+  background: white;
+}
+
+.name-input:focus {
+  outline: none;
+  border-color: #33cc53;
+  box-shadow: 0 5px 0 #088522, 0 8px 20px rgba(51, 204, 83, 0.2);
+  transform: translateY(-2px);
+}
+
+.name-input::placeholder {
+  color: #a0a0a0;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .app-container {
+    padding: 1rem;
+  }
+
+  .box-container {
+    padding: 1.75rem 1.5rem;
+    border-radius: 40px;
+    max-width: 500px;
+  }
+
+  .box-container h1 {
+    font-size: 2rem;
+    margin-bottom: 0.875rem;
+  }
+
+  .box-container h2 {
+    font-size: 1.375rem;
+  }
+
+  .box-container p {
+    font-size: 0.875rem;
+    padding: 0 0.75rem;
+  }
+
+  .box-container img {
+    max-width: 50%;
+  }
+
+  .arrow-and-chameleons {
+    gap: 0.875rem;
+  }
+
+  .left-arrow-btn,
+  .right-arrow-btn {
+    width: 50px;
+    height: 50px;
+  }
+
+  .arrow {
+    width: 26px;
+    height: 26px;
+  }
+
+  .continue-btn {
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+  }
+
+  .app-heading h1 {
+    font-size: 2.75rem;
+  }
+
+  .app-heading h2 {
+    font-size: 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-container {
+    padding: 0.75rem;
+  }
+
+  .box-container {
+    padding: 1.5rem 1.25rem;
+    border-radius: 30px;
+  }
+
+  .box-container h1 {
+    font-size: 1.75rem;
+  }
+
+  .box-container h2 {
+    font-size: 1.25rem;
+  }
+
+  .box-container p {
+    font-size: 0.8125rem;
+    line-height: 1.4;
+  }
+
+  .box-container img {
+    max-width: 55%;
+  }
+
+  .arrow-and-chameleons {
+    gap: 0.75rem;
+  }
+
+  .left-arrow-btn,
+  .right-arrow-btn {
+    width: 45px;
+    height: 45px;
+  }
+
+  .arrow {
+    width: 24px;
+    height: 24px;
+  }
+
+  .continue-btn {
+    padding: 0.75rem 1.75rem;
+    font-size: 0.9375rem;
+  }
+
+  .name-input {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.9375rem;
+  }
+
+  .app-heading h1 {
+    font-size: 2.25rem;
+  }
+
+  .app-heading h2 {
+    font-size: 1.125rem;
+  }
 }
