@@ -8,6 +8,34 @@ import Modal from "./modal.tsx";
 import { useRestart } from "./RestartContext";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
+
+//chameleon images
+import Level_1_PantherChameleonHappy from "../assets/chameleonImages/Panther Chameleon/Level 1/Panther Chameleon Level 1 YELLOW.png";
+import Level_1_PantherChameleonSick from "../assets/chameleonImages/Panther Chameleon/Level 1/Panther Chameleon Level 1 GREY.png";
+import Level_1_PantherChameleonNormal from "../assets/chameleonImages/Panther Chameleon/Level 1/Panther Chameleon Level 1 GREEN.png";
+import Level_1_PantherChameleonAngry from "../assets/chameleonImages/Panther Chameleon/Level 1/Panther Chameleon Level 1 ORANGE-RED.png";
+import Level_2_PantherChameleonHappy from "../assets/chameleonImages/Panther Chameleon/Level 2/Panther Chameleon YELLOW.png";
+import Level_2_PantherChameleonSick from "../assets/chameleonImages/Panther Chameleon/Level 2/Panther Chameleon GREY.png";
+import Level_2_PantherChameleonNormal from "../assets/chameleonImages/Panther Chameleon/Level 2/Panther Chameleon GREEN.png";
+import Level_2_PantherChameleonAngry from "../assets/chameleonImages/Panther Chameleon/Level 2/Panther Chameleon ORANGE-RED.png";
+import Level_3_PantherChameleonHappy from "../assets/chameleonImages/Panther Chameleon/Level 3/Panther Chameleon Level 3 YELLOW.png";
+import Level_3_PantherChameleonSick from "../assets/chameleonImages/Panther Chameleon/Level 3/Panther Chameleon Level 3 GREY.png";
+import Level_3_PantherChameleonNormal from "../assets/chameleonImages/Panther Chameleon/Level 3/Panther Chameleon Level 3 GREEN.png";
+import Level_3_PantherChameleonAngry from "../assets/chameleonImages/Panther Chameleon/Level 3/Panther Chameleon Level 3 ORANGE-RED.png";
+
+import Level_1_JacksonsChameleonHappy from "../assets/chameleonImages/Jackson's Chameleon/Level 1/Jackson's Chameleon Level 1 YELLOW.png";
+import Level_1_JacksonsChameleonSick from "../assets/chameleonImages/Jackson's Chameleon/Level 1/Jackson's Chameleon Level 1 GREY.png";
+import Level_1_JacksonsChameleonNormal from "../assets/chameleonImages/Jackson's Chameleon/Level 1/Jackson's Chameleon Level 1 GREEN.png";
+import Level_1_JacksonsChameleonAngry from "../assets/chameleonImages/Jackson's Chameleon/Level 1/Jackson's Chameleon Level 1 ORANGE-RED.png";
+import Level_2_JacksonsChameleonHappy from "../assets/chameleonImages/Jackson's Chameleon/Level 2/Jackson's Chameleon Level 2 YELLOW.png";
+import Level_2_JacksonsChameleonSick from "../assets/chameleonImages/Jackson's Chameleon/Level 2/Jackson's Chameleon Level 2 GREY.png";
+import Level_2_JacksonsChameleonNormal from "../assets/chameleonImages/Jackson's Chameleon/Level 2/Jackson's Chameleon Level 2 GREEN.png";
+import Level_2_JacksonsChameleonAngry from "../assets/chameleonImages/Jackson's Chameleon/Level 2/Jackson's Chameleon Level 2 ORANGE-RED.png";
+import Level_3_JacksonsChameleonHappy from "../assets/chameleonImages/Jackson's Chameleon/Level 3/Jackson's Chameleon Level 3 YELLOW.png";
+import Level_3_JacksonsChameleonSick from "../assets/chameleonImages/Jackson's Chameleon/Level 3/Jackson's Chameleon Level 3 GREY.png";
+import Level_3_JacksonsChameleonNormal from "../assets/chameleonImages/Jackson's Chameleon/Level 3/Jackson's Chameleon Level 3 GREEN.png";
+import Level_3_JacksonsChameleonAngry from "../assets/chameleonImages/Jackson's Chameleon/Level 3/Jackson's Chameleon Level 3 ORANGE-RED.png";
+
 // ---------------------------
 // defining categories and actions
 // ---------------------------
@@ -35,14 +63,14 @@ type Action = {
 // ---------------------------
 const actions: Record<Category, Action[]> = {
   Health: [
-    { name: "Check Eyes", healthValue: 10, happinessValue: -10 },
-    { name: "Trim Nails", healthValue: 5, happinessValue: -10 },
-    { name: "Check Skin Shedding", healthValue: 15, happinessValue: -10 },
-    { name: "Clean Enclosure", healthValue: 10, happinessValue: -10 },
+    { name: "Check Eyes", healthValue: 10, happinessValue: -10, cooldown: 1 },
+    { name: "Trim Nails", healthValue: 5, happinessValue: -10, cooldown: 1.5 },
+    { name: "Check Skin Shedding", healthValue: 15, happinessValue: -10, cooldown: 5 },
+    { name: "Clean Enclosure", healthValue: 10, happinessValue: -10, cooldown: 3 },
     { name: "Vet Visit", cost: 75, healthValue: 50, happinessValue: -25, hydrationValue: 30, energyValue: -10, hungerValue: 30 },
   ],
   Care: [
-    { name: "Play", happinessValue: 30, hungerValue: -15 },
+    { name: "Play", happinessValue: 30 },
     { name: "Misting", hydrationValue: 20, cost: 4 },
     { name: "Feed", hungerValue: 15, hasFood: true },
     { name: "Nap", energyValue: 25, cooldown: 2 },
@@ -93,6 +121,8 @@ const Money: React.FC<MoneyProps> = ({ coins }) => {
   );
 };
 
+
+
 //---------------------------
 // random variable function
 //---------------------------
@@ -111,9 +141,12 @@ const temperatureStart = randomNumberInRange(60, 90);
 // ---------------------------
 // main component
 // ---------------------------
-const FourButtons: React.FC<{ userId: string | null }> = ({ userId }) => {
+const FourButtons: React.FC<{petType: string, userId: string | null; onStatsChange?: (stats: any) => void }> = ({ userId, petType, onStatsChange }) => {
   const { open } = useContext(ToastContext);
   const { restartGame } = useRestart();
+  
+
+
 
   const [active, setActive] = useState<Category | null>(null);
   const [coins, setCoins] = useState(50);
@@ -145,7 +178,97 @@ const FourButtons: React.FC<{ userId: string | null }> = ({ userId }) => {
   const [earnModalOpen, setEarnModalOpen] = useState(false);
   const [newEarnName, setNewEarnName] = useState("");
   const [newEarnCoins, setNewEarnCoins] = useState<number>(20);
- 
+  const [whichChameleon, setWhichChameleon] = useState<string>("");
+
+  const pantherImages = {
+    
+  1: {
+    happy: Level_1_PantherChameleonHappy,
+    normal: Level_1_PantherChameleonNormal,
+    sick: Level_1_PantherChameleonSick,
+    angry: Level_1_PantherChameleonAngry,
+  },
+  2: {
+    happy: Level_2_PantherChameleonHappy,
+    normal: Level_2_PantherChameleonNormal,
+    sick: Level_2_PantherChameleonSick,
+    angry: Level_2_PantherChameleonAngry,
+  },
+  3: {
+    happy: Level_3_PantherChameleonHappy,
+    normal: Level_3_PantherChameleonNormal,
+    sick: Level_3_PantherChameleonSick,
+    angry: Level_3_PantherChameleonAngry,
+  },
+  };
+  const jacksonsImages = {
+    
+  1: {
+    happy: Level_1_JacksonsChameleonHappy,
+    normal: Level_1_JacksonsChameleonNormal,
+    sick: Level_1_JacksonsChameleonSick,
+    angry: Level_1_JacksonsChameleonAngry,
+  },
+  2: {
+    happy: Level_2_JacksonsChameleonHappy,
+    normal: Level_2_JacksonsChameleonNormal,
+    sick: Level_2_JacksonsChameleonSick,
+    angry: Level_2_JacksonsChameleonAngry,
+  },
+  3: {
+    happy: Level_3_JacksonsChameleonHappy,
+    normal: Level_3_JacksonsChameleonNormal,
+    sick: Level_3_JacksonsChameleonSick,
+    angry: Level_3_JacksonsChameleonAngry,
+  },
+  };
+
+  type Mood = "happy" | "normal" | "sick" | "angry";
+  type ImageLevel = 1 | 2 | 3;
+
+  useEffect(() => {
+    const mood: Mood =
+      happiness >= 90 ? "happy" :
+      health <= 30 ? "sick" :
+      hunger <= 30 ? "angry" :
+      hydration <= 30 ? "angry" :
+      energy <= 30 ? "sick" :
+      "normal";
+  const safeLevel: ImageLevel = (Math.min(level, 3) as ImageLevel);
+
+  if (petType === "Panther Chameleon") {
+    setWhichChameleon(pantherImages[safeLevel][mood]);
+  } else if (petType === "Jackson's Chameleon") {
+    setWhichChameleon(jacksonsImages[safeLevel][mood]);
+  }
+
+  }, [happiness, health,hunger,hydration,energy, level]);
+
+
+
+  
+  //---------------------------
+  // Pass stats to parent / dashboard whenever they change
+  //---------------------------
+  useEffect(() => {
+    if (onStatsChange) {
+      onStatsChange({
+        coins,
+        energy,
+        hunger,
+        hydration,
+        happiness,
+        health,
+        temperature,
+        level,
+        foodInventory,
+        trickt2unlocked,
+        unlockedEarnSpots,
+        dynamicEarnActions
+      });
+    }
+  }, [coins, energy, hunger, hydration, happiness, health, temperature, level, foodInventory, trickt2unlocked, unlockedEarnSpots, dynamicEarnActions]);
+
   //---------------------------
   // Tick interval for countdowns
   //---------------------------
@@ -311,7 +434,6 @@ useEffect(() => {
   // Count how many stats are above 90
   const stats = [energy, hunger, hydration, happiness, health];
   const statsAbove90 = stats.filter(stat => stat > 90).length;
-  
   // Calculate required stats based on current level
   const requiredStats = level + 1; // Level 1 needs 2 stats, Level 2 needs 3 stats, etc.
   
@@ -382,13 +504,12 @@ useEffect(() => {
       open(<div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">Your chameleon is napping — wait until it wakes up.</div>, 3000);
       return;
     }
-
     
     // ----- COINS -----
     if (action.cost !== undefined) {
       if (coins - action.cost < 0){
         setCoins(0);
-        open(<div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">No money left! Try looking at the Earn catagory.</div>, 3000);
+        open(<div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">No money left! Try looking at the Earn catagory. {petType}</div>, 3000);
         return;
       } else {
       setCoins(coins - action.cost);
@@ -458,6 +579,18 @@ useEffect(() => {
       setNapUntil(Date.now() + action.cooldown * 60 * 1000);
       open(<div className="bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg">Your chameleon is now napping for {action.cooldown} minutes.</div>, 3000);
     }
+    // ----- HAPPINESS -----
+    if (action.happinessValue !== undefined) {
+      if (action.happinessValue + happiness < 0){
+        open(<div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">Your chameleon is very depressed! It cannot accomplish this action!</div>, 3000);
+        return;
+      } else if (action.happinessValue + happiness > 100){
+        setHappiness(100);
+      } else {
+        setHappiness(happiness + action.happinessValue);
+      }
+      console.log("Happiness:", happiness);
+    }
 
     // ----- ENERGY -----
     if (action.energyValue !== undefined) {
@@ -473,17 +606,6 @@ useEffect(() => {
       }
     }
 
-    // ----- HAPPINESS -----
-    if (action.happinessValue !== undefined) {
-      if (action.happinessValue + happiness < 0){
-        open(<div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">Your chameleon is very depressed! It cannot accomplish this action!</div>, 3000);
-        return;
-      } else if (action.happinessValue + happiness > 100){
-        setHappiness(100);
-      } else {
-        setHydration(happiness + action.happinessValue);
-      }
-    }
     // ----- HYDRATION -----
     if (action.hydrationValue !== undefined) {
       if (action.hydrationValue + hydration < 0){
@@ -513,6 +635,10 @@ useEffect(() => {
   //---------------------------
   return (
     <div className="four-buttons-wrapper">
+      <p>Image path: {whichChameleon}</p>
+      <div className="left-panel">
+      <img src={whichChameleon} alt="Chameleon" className="chameleon-image" />
+      </div>
       <Money coins={coins} />
       <FoodInventory foodInventory={foodInventory} />
       <LevelDisplay level={level} />

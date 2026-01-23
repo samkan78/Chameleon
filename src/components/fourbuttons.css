@@ -58,3 +58,12 @@
 .sub-btn:active {
   transform: translateY(0);
 }
+
+.left-panel > div {
+  width: 100%;
+  width: 160px;
+  display: flex;
+  justify-content: flex-start; /* left */
+  align-items: center;         /* vertical center */
+  padding-left: 24px;
+}

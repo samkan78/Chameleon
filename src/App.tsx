@@ -16,11 +16,15 @@ import { RestartProvider } from "./components/RestartContext";
 import { auth, db } from "./firebase";
 import { signInWithCredential, GoogleAuthProvider, onAuthStateChanged } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
+import { signOut } from "firebase/auth";
+
 
 export default function App() {
-  const [selectedChameleon, setSelectedChameleon] =
-    useState<Chameleon | null>(null);
+  const [selectedChameleon, setSelectedChameleon] = useState<Chameleon | null>(null);
   const [petName, setPetName] = useState("");
+
+  // NEW: store FourButtons stats
+  const [chameleonStats, setChameleonStats] = useState<any>({});
 
   console.log(
     "VITE_GOOGLE_CLIENT_ID:",
@@ -35,6 +39,8 @@ export default function App() {
           petName={petName}
           setSelectedChameleon={setSelectedChameleon}
           setPetName={setPetName}
+          chameleonStats={chameleonStats}
+          setChameleonStats={setChameleonStats} // pass setter to FourButtons
         />
       </Router>
     </GoogleOAuthProvider>
@@ -46,11 +52,15 @@ function AppWithRestart({
   petName,
   setSelectedChameleon,
   setPetName,
+  chameleonStats,
+  setChameleonStats,
 }: {
   selectedChameleon: Chameleon | null;
   petName: string;
   setSelectedChameleon: (c: Chameleon | null) => void;
   setPetName: (name: string) => void;
+  chameleonStats: any;
+  setChameleonStats: (stats: any) => void;
 }) {
   const navigate = useNavigate();
   const [showRestartModal, setShowRestartModal] = useState(false);
@@ -266,31 +276,25 @@ function AppWithRestart({
 
   return (
     <RestartProvider value={{ restartGame }}>
-      {/* GLOBAL RESTART BUTTON */}
       <RestartAnytime onRestart={() => setShowRestartModal(true)} />
 
-      {/* CONFIRMATION MODAL */}
       {showRestartModal && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.6)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 2000,
-          }}
-        >
-          <div
-            style={{
-              background: "white",
-              padding: 20,
-              borderRadius: 8,
-              width: 300,
-              textAlign: "center",
-            }}
-          >
+        <div style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(0,0,0,0.6)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 2000,
+        }}>
+          <div style={{
+            background: "white",
+            padding: 20,
+            borderRadius: 8,
+            width: 300,
+            textAlign: "center",
+          }}>
             <h2 className="text-lg font-black text-gray-800">Restart Game?</h2>
             <p className="text-sm text-gray-500">Your progress will be lost.</p>
 
@@ -298,11 +302,7 @@ function AppWithRestart({
               <button onClick={restartGame} className="btn btn-danger w-full">
                 Confirm
               </button>
-
-              <button
-                onClick={() => setShowRestartModal(false)}
-                className="btn btn-light w-full"
-              >
+              <button onClick={() => setShowRestartModal(false)} className="btn btn-light w-full">
                 Cancel
               </button>
             </div>
@@ -311,42 +311,30 @@ function AppWithRestart({
       )}
 
       <Routes>
-        <Route
-          path="/"
-          element={<ChoosePage onSelect={setSelectedChameleon} />}
-        />
-
+        <Route path="/" element={<ChoosePage onSelect={setSelectedChameleon} />} />
         <Route
           path="/name"
-          element={
-            selectedChameleon ? (
-              <NamePage
-                chameleon={selectedChameleon}
-                onNameSubmit={setPetName}
-              />
-            ) : (
-              <div>Please select a chameleon first.</div>
-            )
-          }
+          element={selectedChameleon ? (
+            <NamePage chameleon={selectedChameleon} onNameSubmit={setPetName} />
+          ) : (
+            <div>Please select a chameleon first.</div>
+          )}
         />
-
         <Route
           path="/dashboard"
-          element={
-            selectedChameleon && petName ? (
-              <Dashboard 
-                petName={petName} 
-                petType={selectedChameleon.name}
-                userId={user?.uid || null}
-              />
-            ) : (
-              <div>Please complete the steps first.</div>
-            )
-          }
+          element={selectedChameleon && petName ? (
+            <Dashboard
+              image={selectedChameleon.image}
+              petName={petName}
+              petType={selectedChameleon.name}
+              userId={user?.uid || null}
+            />
+          ) : (
+            <div>Please complete the steps first.</div>
+          )}
         />
       </Routes>
 
-      {/* Conditional Google Login/Sign Out */}
       <div style={{ position: "fixed", bottom: 20, right: 20, zIndex: 1000 }}>
         {user ? (
           <button
@@ -376,14 +364,8 @@ function AppWithRestart({
 
 function ChoosePage({ onSelect }: { onSelect: (ch: Chameleon) => void }) {
   const navigate = useNavigate();
-
   return (
-    <BoxComponent
-      onContinue={(chameleon) => {
-        onSelect(chameleon);
-        navigate("/name");
-      }}
-    />
+    <BoxComponent onContinue={(chameleon) => { onSelect(chameleon); navigate("/name"); }} />
   );
 }
 
@@ -395,14 +377,10 @@ function NamePage({
   onNameSubmit: (name: string) => void;
 }) {
   const navigate = useNavigate();
-
   return (
     <ChameleonNaming
       chameleon={chameleon}
-      onContinue={(name) => {
-        onNameSubmit(name);
-        navigate("/dashboard");
-      }}
+      onContinue={(name) => { onNameSubmit(name); navigate("/dashboard"); }}
     />
   );
 }
