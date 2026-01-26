@@ -14,6 +14,7 @@ import { BoxComponent } from "./components/chameleonChooser";
 import type { Chameleon } from "./components/chameleonChooser";
 import { ChameleonNaming } from "./components/chameleonNaming";
 import Dashboard from "./screens/dashboard";
+import QandA from "./components/interactiveQandA";
 
 function AppRoutes() {
   const [selectedChameleon, setSelectedChameleon] = useState<Chameleon | null>(
@@ -77,15 +78,18 @@ function AppRoutes() {
           path="/dashboard"
           element={
             selectedChameleon && petName ? (
-              <Dashboard
-                petName={petName}
-                petType={selectedChameleon.name}
-                image={selectedChameleon.image}
-                health={health}
-                hunger={hunger}
-                happiness={happiness}
-                energy={energy}
-              />
+              <>
+                <Dashboard
+                  petName={petName}
+                  petType={selectedChameleon.name}
+                  image={selectedChameleon.image}
+                  health={health}
+                  hunger={hunger}
+                  happiness={happiness}
+                  energy={energy}
+                />
+                <QandA />
+              </>
             ) : (
               <div>Please complete the steps first.</div>
             )
