@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+
 import "./healthbars.css";
-import TemperatureBar from "./temperature";
+import TemperatureBar from "./tempraturebar";
 
 interface HealthBarProps {
   energy: number;
@@ -11,7 +11,8 @@ interface HealthBarProps {
   temperature?: number;
   onIncreaseTemp?: () => void;
   onDecreaseTemp?: () => void;
-  chameleonType?: "panther" | "jackson" | "nose-horned";
+  chameleonType?: 'panther' | 'jackson' | 'nose-horned';
+  tempChangeUntil?: number | null;
 }
 
 const getFillColor = (percent: number) => {
@@ -30,40 +31,14 @@ const HealthBars: React.FC<HealthBarProps> = ({
   onIncreaseTemp,
   onDecreaseTemp,
   chameleonType,
-}) => {
-  const [stats, setStats] = useState({
-    energy,
-    hunger,
-    happiness,
-    health,
-    hydration,
-  });
-
-  // Decrease stats every 2 minutes by 10–15
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setStats((prev) => {
-        const newStats = { ...prev };
-        for (let key in newStats) {
-          const decrease = Math.floor(Math.random() * 6) + 10; // 10–15
-          (newStats as any)[key] = Math.max(
-            0,
-            (newStats as any)[key] - decrease
-          );
-        }
-        return newStats;
-      });
-    }, 2 * 60 * 1000); // 2 minutes
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const healthBarsArray = [
-    { label: "Energy", current: stats.energy, max: 100 },
-    { label: "Hunger", current: stats.hunger, max: 100 },
-    { label: "Happiness", current: stats.happiness, max: 100 },
-    { label: "Health", current: stats.health, max: 100 },
-    { label: "Hydration", current: stats.hydration, max: 100 },
+  tempChangeUntil,
+}: HealthBarsProps) {
+  const healthBars: HealthBar[] = [
+    { label: "Energy", current: energy, max: 100, color: "#432626ff" },
+    { label: "Hunger", current: hunger, max: 100, color: "#432626ff" },
+    { label: "Happiness", current: happiness, max: 100, color: "#432626ff" },
+    { label: "Health", current: health, max: 100, color: "#432626ff" },
+    { label: "Hydration", current: hydration, max: 100, color: "#432626ff" },
   ];
 
   return (
@@ -83,15 +58,16 @@ const HealthBars: React.FC<HealthBarProps> = ({
             </div>
             <span className="health-percent">{percent}%</span>
           </div>
-        );
-      })}
-
+          <span className="health-percent">{bar.current}%</span>
+        </div>
+      ))}
       {typeof temperature === "number" && (
         <TemperatureBar
           temperature={temperature}
           onIncrease={onIncreaseTemp}
           onDecrease={onDecreaseTemp}
           chameleonType={chameleonType}
+          tempChangeUntil={tempChangeUntil}
         />
       )}
     </div>

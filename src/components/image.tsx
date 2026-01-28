@@ -1,13 +1,13 @@
 import React from "react";
 
-type Props = {
-  src: string;
+type displayImageProps = {
+  displayImage: string;
 };
 
-export default function ImageBox({ src }: Props) {
+export default function ImageBox({ displayImage }: displayImageProps) {
   return (
     <div style={boxStyle}>
-      <img src={src} alt="image" style={imgStyle} />
+      <img src={displayImage} alt="image" style={imgStyle} />
     </div>
   );
 }

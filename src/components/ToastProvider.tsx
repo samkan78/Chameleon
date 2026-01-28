@@ -1,19 +1,20 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import type { ReactNode } from "react";
 import ToastContext from "./ToastService";
 import type { ToastContextType } from "./ToastService";
 
-// ...rest of your code
 type ToastItem = {
-  id: number;
+  id: string;
   component: ReactNode;
 };
 
 export default function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const counterRef = useRef(0);
 
   const open: ToastContextType["open"] = (component, timeout = 5000) => {
-    const id = Date.now();
+    // Generate unique ID using timestamp + counter
+    const id = `${Date.now()}-${counterRef.current++}`;
     setToasts((prevToasts) => [...prevToasts, { id, component }]);
     setTimeout(() => close(id), timeout);
   };

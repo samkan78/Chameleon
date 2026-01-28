@@ -1,52 +1,34 @@
-import React from "react";
-import ImageBox from "../components/image";
+import React, { useEffect, useState } from "react";
 import "./dashboard.css";
 import FourButtons from "../components/fourbuttons";
 import HowToPlay from "../components/helpButton";
-import { Money } from "../components/money"; // Import Money component
-import DashboardInformation from "../components/dashboardHeading";
-import { YearsOld } from "../components/age";
-// Defining the petName, petType, image, and years as props
-interface ChameleonDashboard {
+
+
+// Defining the petname, pettype, and userId as props
+export type ChameleonDashboard = {
+  image: string;
   petName: string;
   petType: string;
-  image: string; // We need this
-  health: number;
-  hunger: number;
-  happiness: number;
-  energy: number;
-}
+  userId: string | null;
+};
 
-const Dashboard: React.FC<ChameleonDashboard> = ({
-  petName,
-  petType,
-  image,
-  health,
-  hunger,
-  happiness,
-  energy,
-}) => (
-  <div className="dashboard-root">
-    {/* Top Header Section */}
-    <DashboardInformation petName={petName} petType={petType} />
-    {/* The Main Flex Container */}{" "}
-    <div className="central-action-area">
-      {/* 1. LEFT: Health Bars */}
+const Dashboard: React.FC<ChameleonDashboard> = ({ petName, petType, userId }) => {
+  return (
+    <div className="dashboard-root">
 
-      {/* 2. MIDDLE: Chameleon Image */}
-      <section className="chameleon-display">
-        <ImageBox src={image} />
-      </section>
-
-      {/* 3. RIGHT: Four Buttons */}
-      <aside className="controls-panel">
-        <FourButtons />
-      </aside>
+      {/* Components to display the health and actions of the chameleon */}
+      <main className="dashboard-main">
+        <h2>Chameleon Dashboard</h2>
+        <p>Pet Name: {petName}</p>
+        <p>Pet Type: {petType}</p>
+        <FourButtons 
+        userId={userId} 
+        petType={petType} 
+        />
+        <HowToPlay />
+      </main>
     </div>
-    {/* Bottom/Miscellaneous Section */}
-    <footer className="dashboard-footer">
-      <HowToPlay />
-    </footer>
-  </div>
-);
+  );
+};
+
 export default Dashboard;

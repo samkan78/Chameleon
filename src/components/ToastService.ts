@@ -1,9 +1,9 @@
-import { createContext, useContext } from "react";
+import { createContext } from "react";
 import type { ReactNode } from "react";
 
 export type ToastContextType = {
   open: (component: ReactNode, timeout?: number) => void;
-  close: (id: number) => void;
+  close: (id: string) => void;
 };
 
 const ToastContext = createContext<ToastContextType>({
