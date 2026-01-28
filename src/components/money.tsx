@@ -7,17 +7,20 @@ type MoneyProps = {
 //Show number of coins/money in top-right corner
 export const Money: React.FC<MoneyProps> = ({ coins }) => {
   return (
-    <div style={{ position: "fixed", top: 10, right: 10, zIndex: 1000 }}>
+    <div style={{ position: "fixed", top: 10, left: 10, zIndex: 1000 }}>
       <button
         style={{
-          width: 50,
-          height: 50,
-          backgroundColor: "black",
-          color: "white",
+          width: 80,
+          height: 40,
+          backgroundColor: "#333",
+          color: "#FFD700",
+          fontWeight: "bold",
+          border: "2px solid #666",
+          cursor: "default",
         }}
         disabled
       >
-        coins: {coins}
+        💰 {coins}
       </button>
     </div>
   );

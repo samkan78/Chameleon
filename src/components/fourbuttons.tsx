@@ -1,9 +1,11 @@
 // FourButtons.tsx
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import "./fourbuttons.css";
 import dingSound from "../assets/ding.mp3";
 import HealthBars from "./healthbars";
 import ToastContext from "./ToastService";
+import { Money } from "./money";
+import { FoodInventory } from "./foodInventory";
 
 //chameleon images
 import Level_1_PantherChameleonHappy from "../assets/chameleonImages/Panther Chameleon/Level 1/Panther Chameleon Level 1 YELLOW.png";
@@ -39,10 +41,19 @@ type Action = {
   unlockstier2tricks?: boolean;
   tiertwotrick?: boolean;
   isFood?: boolean;
+  popuptest?: boolean;
 };
 
+// default starting stat levels
+const hydrationStartLevel = 50;
+const energyStartLevel = 50;
+const hungerStartLevel = 50;
+const happinessStartLevel = 50;
+const healthStartLevel = 50;
+const temperatureStart = 70;
+
 // ---------------------------
-// subbutton actions
+// subbutton actions (initial)
 // ---------------------------
 const actions: Record<Category, Action[]> = {
   Health: [
@@ -56,8 +67,9 @@ const actions: Record<Category, Action[]> = {
     { name: "Play", happinessValue: 30 },
     { name: "Misting", hydrationValue: 20, cost: 4 },
     { name: "Feed", hungerValue: 15, hasFood: true },
-    { name: "Nap", energyValue: 25, cooldown: 2 }
-    
+    { name: "Nap", energyValue: 25, cooldown: 2 },
+    { name: "testing for the dev", energyValue:10,hungerValue:10,hydrationValue:10,healthValue:10,happinessValue:10},
+    { name: "testing for dev 2", energyValue: -10, hungerValue: -10, healthValue: -10, happinessValue: -10}
   ],
   Tricks: [
     { name: "Climbing Practice", energyValue: -20, happinessValue: 10, hasLock: true },
@@ -77,51 +89,19 @@ const actions: Record<Category, Action[]> = {
     { name: "Do laundry", cost: -45, cooldown: 20 },
   ],
 };
-
-// ---------------------------
-// coins/monetary display component
-// ---------------------------
-const Money = ({ coins }: { coins: number }) => (
-  <div style={{ position: "fixed", top: 10, right: 10, zIndex: 1000 }}>
-    <button style={{ width: 80, height: 40, backgroundColor: "black", color: "white", borderRadius: 5, border: "none", fontWeight: "bold" }} disabled>
-      Coins: {coins}
-    </button>
-  </div>
-);
-
-const FoodInventory = ({ foodInventory }: { foodInventory: number }) => (
-  <div style={{ position: "fixed", top: 60, right: 10, zIndex: 1000 }}>
-    <button style={{ width: 120, height: 40, backgroundColor: "brown", color: "white", borderRadius: 5, border: "none", fontWeight: "bold" }} disabled>
-      Food Items: {foodInventory}
-    </button>
-  </div>
-);
-
-const LevelDisplay = ({ level }: { level: number }) => (
-  <div style={{ position: "fixed", top: 110, right: 10, zIndex: 1000 }}>
-    <h1>Level: {level}</h1>
-  </div>
-);
-
-//---------------------------
-// random variable function
-//---------------------------
-const randomNumberInRange = (min: number, max: number): number => Math.floor(Math.random() * (max - min + 1)) + min;
-
-//---------------------------
-// starting levels
-//---------------------------
-const hydrationStartLevel = randomNumberInRange(30, 60);
-const energyStartLevel = randomNumberInRange(30, 60);
-const hungerStartLevel = randomNumberInRange(30, 60);
-const happinessStartLevel = randomNumberInRange(30, 60);
-const healthStartLevel = randomNumberInRange(30, 60);
-const temperatureStart = randomNumberInRange(60, 90);
-
+// (duplicate import block removed - original image imports are at file top)
 // ---------------------------
 // main component
 // ---------------------------
-const FourButtons = ({ petType }: { petType: string }) => {
+type FourButtonsProps = {
+  petType: string;
+  userId?: string;
+  saveGameData?: (id: string) => void;
+  setWinLose?: (val: string) => void;
+  setOpenModal?: (open: boolean) => void;
+};
+
+const FourButtons = ({ petType, userId, saveGameData, setWinLose, setOpenModal }: FourButtonsProps) => {
   const { open } = useContext(ToastContext);
 
   const [active, setActive] = useState<Category | null>(null);
@@ -137,7 +117,43 @@ const FourButtons = ({ petType }: { petType: string }) => {
   const [lockedActions, setLockedActions] = useState<Set<string>>(new Set());
   const [napUntil, setNapUntil] = useState<number | null>(null);
   const [cooldowns, setCooldowns] = useState<Record<string, number>>({});
-  const [level] = useState(1);
+  const [level, setLevel] = useState(1);
+  const [unlockedEarnSpots, setUnlockedEarnSpots] = useState(1);
+  const [actionsState, setActionsState] = useState<Record<Category, Action[]>>(actions);
+
+  useEffect(() => {
+    const stats = [energy, hunger, hydration, happiness, health];
+    const statsAbove90 = stats.filter((stat) => stat > 90).length;
+    const requiredStats = level + 1;
+
+    if (statsAbove90 >= requiredStats) {
+      const newLevel = level + 1;
+      // If reaching the game's win level, call parent callbacks if provided
+      if (level === 3) {
+        setWinLose?.('WIN');
+        setOpenModal?.(true);
+        if (userId && saveGameData) saveGameData(userId);
+      }
+
+      // Level up and reset all stats to 50
+      setLevel(newLevel);
+      setUnlockedEarnSpots(newLevel);
+      setEnergy(50);
+      setHunger(50);
+      setHydration(50);
+      setHappiness(50);
+      setHealth(50);
+
+      open(
+        <div className="bg-purple-500 text-white px-4 py-3 rounded-lg shadow-lg font-bold">
+          LEVEL UP! You're now Level {newLevel}!
+          <br />
+          Stats reset to 50. Unlocked {newLevel} Earn action slots!
+        </div>,
+        4000
+      );
+    }
+  }, [energy, hunger, hydration, happiness, health, level, open, userId, saveGameData, setWinLose, setOpenModal]);
 
   const pantherImages = {
     1: { happy: Level_1_PantherChameleonHappy, normal: Level_1_PantherChameleonNormal },
@@ -171,6 +187,15 @@ const FourButtons = ({ petType }: { petType: string }) => {
     return "";
   };
 
+  // small level display component
+  const LevelDisplay: React.FC<{ level: number }> = ({ level }) => (
+    <div style={{ position: "fixed", top: 70, right: 10, zIndex: 1000 }}>
+      <button style={{ width: 70, height: 30, backgroundColor: "#222", color: "white" }} disabled>
+        Level: {level}
+      </button>
+    </div>
+  );
+
   // Toggle main category
   const toggleCategory = (category: Category) => setActive(active === category ? null : category);
 
@@ -186,7 +211,7 @@ const FourButtons = ({ petType }: { petType: string }) => {
     }
 
     const napActive = napUntil !== null && napUntil > Date.now();
-    const isShopOrEarn = actions.Shop.some((a) => a.name === action.name) || actions.Earn.some((a) => a.name === action.name);
+    const isShopOrEarn = actionsState.Shop.some((a) => a.name === action.name) || actionsState.Earn.some((a) => a.name === action.name);
 
     if (napActive && !isShopOrEarn) {
       open(<div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">Your chameleon is napping!</div>, 3000);
@@ -309,7 +334,7 @@ const FourButtons = ({ petType }: { petType: string }) => {
 
       {/* Main buttons */}
       <div className="main-buttons">
-        {(Object.keys(actions) as Category[]).map(category => (
+        {(Object.keys(actionsState) as Category[]).map(category => (
           <button key={category} className={`main-btn ${active === category ? "active" : ""}`} onClick={() => toggleCategory(category)}>
             {category}
           </button>
@@ -319,7 +344,7 @@ const FourButtons = ({ petType }: { petType: string }) => {
       {/* Subbuttons */}
       {active && (
         <div className="sub-buttons">
-          {actions[active].map(action => {
+          {actionsState[active].map(action => {
             const cooldownEnd = cooldowns[action.name] ?? 0;
             const cooldownRemaining = Math.max(0, cooldownEnd - Date.now());
             const disabled = cooldownRemaining > 0;
@@ -330,6 +355,36 @@ const FourButtons = ({ petType }: { petType: string }) => {
               </button>
             );
           })}
+
+          {/* Add Earn action UI when Earn is active */}
+          {active === "Earn" && (
+            <div style={{ marginTop: 12 }}>
+              <button
+                className="sub-btn"
+                onClick={() => {
+                  const name = prompt("Earn action name:");
+                  if (!name) return;
+                  const rewardStr = prompt("Reward (positive number, e.g. 20):");
+                  if (!rewardStr) return;
+                  const reward = Number(rewardStr);
+                  if (Number.isNaN(reward)) {
+                    open(<div className="bg-red-500 text-white px-4 py-3 rounded-lg">Invalid reward number</div>, 3000);
+                    return;
+                  }
+                  // enforce unlocked slots
+                  if (actionsState.Earn.length >= unlockedEarnSpots) {
+                    open(<div className="bg-red-500 text-white px-4 py-3 rounded-lg">No unlocked Earn slots</div>, 3000);
+                    return;
+                  }
+                  const newAction: Action = { name, cost: -Math.abs(reward), cooldown: 10 };
+                  setActionsState(prev => ({ ...prev, Earn: [...prev.Earn, newAction] }));
+                  open(<div className="bg-green-500 text-white px-4 py-3 rounded-lg">Earn action added</div>, 3000);
+                }}
+              >
+                + Add Earn Action
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

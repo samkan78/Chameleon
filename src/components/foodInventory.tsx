@@ -4,19 +4,22 @@ type foodInventoryProps = {
   foodInventory: number;
 };
 
-export const Money: React.FC<foodInventoryProps> = ({ foodInventory }) => {
+export const FoodInventory: React.FC<foodInventoryProps> = ({ foodInventory }) => {
   return (
-    <div style={{ position: "fixed", top: 10, right: 10, zIndex: 1000 }}>
+    <div style={{ position: "fixed", top: 60, left: 10, zIndex: 1000 }}>
       <button
         style={{
-          width: 50,
-          height: 50,
-          backgroundColor: "black",
-          color: "white",
+          width: 80,
+          height: 40,
+          backgroundColor: "#333",
+          color: "#90EE90",
+          fontWeight: "bold",
+          border: "2px solid #666",
+          cursor: "default",
         }}
         disabled
       >
-        foodInventory: {foodInventory}
+        🍗 {foodInventory}
       </button>
     </div>
   );
