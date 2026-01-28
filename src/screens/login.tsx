@@ -1,4 +1,3 @@
-import React from "react";
 import "../components/start-and-login.css";
 
 type LoggingInProps = {

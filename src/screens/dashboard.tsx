@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import "./dashboard.css";
 import FourButtons from "../components/fourbuttons";
 import HowToPlay from "../components/helpButton";
@@ -12,7 +12,7 @@ export type ChameleonDashboard = {
   userId: string | null;
 };
 
-const Dashboard: React.FC<ChameleonDashboard> = ({ petName, petType, userId }) => {
+const Dashboard: React.FC<ChameleonDashboard> = ({ petName, petType }) => {
   return (
     <div className="dashboard-root">
 
@@ -22,7 +22,6 @@ const Dashboard: React.FC<ChameleonDashboard> = ({ petName, petType, userId }) =
         <p>Pet Name: {petName}</p>
         <p>Pet Type: {petType}</p>
         <FourButtons 
-        userId={userId} 
         petType={petType} 
         />
         <HowToPlay />
