@@ -12,7 +12,7 @@ export default function StartPage() {
           <span className="title-chameleon">Chameleon App</span>
         </h1>
         <p className="desc">Description</p>
-        <button className="play-button" onClick={() => navigate("/login")}>
+        <button className="play-button" onClick={() => navigate("/choose")}>
           <svg className="play-icon" viewBox="0 0 24 24" fill="currentColor">
             <path d="M8 5v14l11-7z" />
           </svg>

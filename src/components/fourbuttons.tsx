@@ -118,8 +118,11 @@ const FourButtons = ({ petType, userId, saveGameData, setWinLose, setOpenModal }
   const [napUntil, setNapUntil] = useState<number | null>(null);
   const [cooldowns, setCooldowns] = useState<Record<string, number>>({});
   const [level, setLevel] = useState(1);
-  const [unlockedEarnSpots, setUnlockedEarnSpots] = useState(1);
+  const [unlockedEarnSpots, setUnlockedEarnSpots] = useState(5);
   const [actionsState, setActionsState] = useState<Record<Category, Action[]>>(actions);
+  const [showAddEarnModal, setShowAddEarnModal] = useState(false);
+  const [earnName, setEarnName] = useState("");
+  const [earnReward, setEarnReward] = useState("");
 
   useEffect(() => {
     const stats = [energy, hunger, hydration, happiness, health];
@@ -137,7 +140,7 @@ const FourButtons = ({ petType, userId, saveGameData, setWinLose, setOpenModal }
 
       // Level up and reset all stats to 50
       setLevel(newLevel);
-      setUnlockedEarnSpots(newLevel);
+      setUnlockedEarnSpots(newLevel + 4);
       setEnergy(50);
       setHunger(50);
       setHydration(50);
@@ -148,7 +151,7 @@ const FourButtons = ({ petType, userId, saveGameData, setWinLose, setOpenModal }
         <div className="bg-purple-500 text-white px-4 py-3 rounded-lg shadow-lg font-bold">
           LEVEL UP! You're now Level {newLevel}!
           <br />
-          Stats reset to 50. Unlocked {newLevel} Earn action slots!
+          Stats reset to 50. Unlocked {newLevel + 4} Earn action slots!
         </div>,
         4000
       );
@@ -362,29 +365,132 @@ const FourButtons = ({ petType, userId, saveGameData, setWinLose, setOpenModal }
               <button
                 className="sub-btn"
                 onClick={() => {
-                  const name = prompt("Earn action name:");
-                  if (!name) return;
-                  const rewardStr = prompt("Reward (positive number, e.g. 20):");
-                  if (!rewardStr) return;
-                  const reward = Number(rewardStr);
-                  if (Number.isNaN(reward)) {
-                    open(<div className="bg-red-500 text-white px-4 py-3 rounded-lg">Invalid reward number</div>, 3000);
-                    return;
-                  }
-                  // enforce unlocked slots
-                  if (actionsState.Earn.length >= unlockedEarnSpots) {
-                    open(<div className="bg-red-500 text-white px-4 py-3 rounded-lg">No unlocked Earn slots</div>, 3000);
-                    return;
-                  }
-                  const newAction: Action = { name, cost: -Math.abs(reward), cooldown: 10 };
-                  setActionsState(prev => ({ ...prev, Earn: [...prev.Earn, newAction] }));
-                  open(<div className="bg-green-500 text-white px-4 py-3 rounded-lg">Earn action added</div>, 3000);
+                  setShowAddEarnModal(true);
+                  setEarnName("");
+                  setEarnReward("");
                 }}
               >
                 + Add Earn Action
               </button>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Add Earn Action Modal */}
+      {showAddEarnModal && (
+        <div style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(0,0,0,0.6)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 2000,
+        }}>
+          <div style={{
+            background: "white",
+            padding: 20,
+            borderRadius: 8,
+            width: 320,
+            textAlign: "center",
+          }}>
+            <h2 className="text-lg font-black text-gray-800">Add Earn Action</h2>
+            
+            <div style={{ marginTop: 15, textAlign: "left" }}>
+              <label style={{ display: "block", marginBottom: 5, fontWeight: "bold", color: "#333" }}>
+                Action Name
+              </label>
+              <input
+                type="text"
+                value={earnName}
+                onChange={(e) => setEarnName(e.target.value)}
+                placeholder="e.g., Wash Dishes"
+                style={{
+                  width: "100%",
+                  padding: "8px",
+                  border: "1px solid #ccc",
+                  borderRadius: "4px",
+                  boxSizing: "border-box",
+                  marginBottom: 12,
+                }}
+              />
+
+              <label style={{ display: "block", marginBottom: 5, fontWeight: "bold", color: "#333" }}>
+                Reward ($)
+              </label>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={earnReward}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  // Only allow digits
+                  const numericVal = val.replace(/[^0-9]/g, "");
+                  // Cap at 30
+                  const cappedVal = numericVal === "" ? "" : Math.min(Number(numericVal), 30).toString();
+                  setEarnReward(cappedVal);
+                }}
+                placeholder="e.g., 25"
+                style={{
+                  width: "100%",
+                  padding: "8px",
+                  border: "1px solid #ccc",
+                  borderRadius: "4px",
+                  boxSizing: "border-box",
+                }}
+              />
+            </div>
+
+            <div className="flex gap-4" style={{ marginTop: 20 }}>
+              <button
+                onClick={() => {
+                  if (!earnName.trim()) {
+                    open(<div className="bg-red-500 text-white px-4 py-3 rounded-lg">Action name cannot be empty</div>, 3000);
+                    return;
+                  }
+                  if (!earnReward.trim()) {
+                    open(<div className="bg-red-500 text-white px-4 py-3 rounded-lg">Reward cannot be empty</div>, 3000);
+                    return;
+                  }
+                  const reward = Number(earnReward);
+                  if (Number.isNaN(reward) || reward <= 0) {
+                    open(<div className="bg-red-500 text-white px-4 py-3 rounded-lg">Invalid reward number (must be positive)</div>, 3000);
+                    return;
+                  }
+                  // Cap reward at 30
+                  const cappedReward = Math.min(reward, 30);
+                  if (reward > 30) {
+                    open(<div className="bg-yellow-500 text-white px-4 py-3 rounded-lg">Reward capped at 30</div>, 2000);
+                  }
+                  if (actionsState.Earn.length >= unlockedEarnSpots) {
+                    open(<div className="bg-red-500 text-white px-4 py-3 rounded-lg">No unlocked Earn slots</div>, 3000);
+                    return;
+                  }
+                  const newAction: Action = { name: earnName, cost: -Math.abs(cappedReward), cooldown: 10 };
+                  setActionsState(prev => ({ ...prev, Earn: [...prev.Earn, newAction] }));
+                  open(<div className="bg-green-500 text-white px-4 py-3 rounded-lg">Earn action "{earnName}" added!</div>, 3000);
+                  setShowAddEarnModal(false);
+                  setEarnName("");
+                  setEarnReward("");
+                }}
+                className="btn btn-success w-full"
+                style={{ backgroundColor: "#28a745", color: "white" }}
+              >
+                Add
+              </button>
+              <button
+                onClick={() => {
+                  setShowAddEarnModal(false);
+                  setEarnName("");
+                  setEarnReward("");
+                }}
+                className="btn btn-light w-full"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

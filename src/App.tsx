@@ -10,6 +10,7 @@ import { BoxComponent } from "./components/chameleonChooser";
 import type { Chameleon } from "./components/chameleonChooser";
 import { ChameleonNaming } from "./components/chameleonNaming";
 import Dashboard from "./screens/dashboard";
+import StartPage from "./screens/start-page";
 import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
 import { RestartAnytime } from "./components/restart";
 import { RestartProvider } from "./components/RestartContext";
@@ -302,7 +303,8 @@ function AppWithRestart({
       )}
 
       <Routes>
-        <Route path="/" element={<ChoosePage onSelect={setSelectedChameleon} />} />
+        <Route path="/" element={<StartPage />} />
+        <Route path="/choose" element={<ChoosePage onSelect={setSelectedChameleon} />} />
         <Route
           path="/name"
           element={selectedChameleon ? (
