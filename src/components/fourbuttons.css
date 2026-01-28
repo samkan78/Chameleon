@@ -59,11 +59,18 @@
   transform: translateY(0);
 }
 
-.left-panel > div {
-  width: 100%;
-  width: 160px;
+.health-box {
   display: flex;
-  justify-content: flex-start; /* left */
-  align-items: center;         /* vertical center */
-  padding-left: 24px;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.top-panel {
+  width: 500px; /* 🔒 hard limit */
+  max-width: 100%;
+}
+
+.healthbars-wrapper {
+  width: 100%;
+  flex-shrink: 0;
 }

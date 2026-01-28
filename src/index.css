@@ -11,7 +11,8 @@
 
 body {
   padding: 40px;
-  background-color: #d4fadc;
+  background-color: white;
+
   font-family: "Franklin Gothic Medium", "Arial Narrow", Arial, sans-serif;
 }
 
@@ -35,5 +36,5 @@ body {
 
   .btn.btn-info {
     @apply text-white bg-blue-600 shadow-blue-400/40;
-  } 
+  }
 }

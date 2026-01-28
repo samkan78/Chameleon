@@ -1,6 +1,6 @@
 .dashboard-root {
   display: flex;
-  align-items: stretch;   /* allow children to use full height */
+  align-items: stretch; /* allow children to use full height */
   gap: 20px;
   padding: 16px;
   height: 100vh;
@@ -10,7 +10,7 @@
   width: 160px;
   display: flex;
   justify-content: flex-start; /* left */
-  align-items: center;         /* vertical center */
+  align-items: center; /* vertical center */
   padding-left: 24px;
 }
 
@@ -22,4 +22,41 @@
 /* ensure the image box appears as a lineless, visible box */
 .left-panel > div {
   width: 100%;
+}
+.dashboard-root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.central-action-area {
+  display: flex;
+  flex-direction: row; /* Aligns items horizontally */
+  justify-content: space-between; /* Space between the 3 sections */
+  align-items: center; /* Centers items vertically relative to each other */
+  width: 100%;
+  max-width: 1200px;
+  margin: 40px 0;
+}
+
+.stats-panel,
+.controls-panel {
+  flex: 1; /* Gives the left and right sides equal weight */
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.chameleon-display {
+  flex: 2; /* Gives the image more space in the middle */
+  display: flex;
+  justify-content: center;
+}
+
+.chameleon-display img {
+  max-width: 400px; /* Adjust based on your image size */
+  height: auto;
 }
