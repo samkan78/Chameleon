@@ -15,3 +15,4 @@ export default function SPLoader() {
     </div>
   );
 }
+//use later for loading screens
