@@ -1,5 +1,4 @@
 import "./healthbars.css";
-import TemperatureBar from "./tempraturebar";
 
 //defining the structure of each health bar
 interface HealthBar {
@@ -16,11 +15,6 @@ interface HealthBarsProps {
   happiness: number;
   health: number;
   hydration: number;
-  temperature?: number;
-  onIncreaseTemp?: () => void;
-  onDecreaseTemp?: () => void;
-  chameleonType?: 'panther' | 'jackson' | 'nose-horned';
-  tempChangeUntil?: number | null;
 }
 
 //main healthbars function
@@ -30,18 +24,13 @@ export default function HealthBars({
   happiness,
   health,
   hydration,
-  temperature,
-  onIncreaseTemp,
-  onDecreaseTemp,
-  chameleonType,
-  tempChangeUntil,
 }: HealthBarsProps) {
   const healthBars: HealthBar[] = [
-    { label: "Energy", current: energy, max: 100, color: "#432626ff" },
-    { label: "Hunger", current: hunger, max: 100, color: "#432626ff" },
-    { label: "Happiness", current: happiness, max: 100, color: "#432626ff" },
-    { label: "Health", current: health, max: 100, color: "#432626ff" },
-    { label: "Hydration", current: hydration, max: 100, color: "#432626ff" },
+    { label: "Energy", current: energy, max: 100, color: "#FFD700" },
+    { label: "Hunger", current: hunger, max: 100, color: "#FF8C42" },
+    { label: "Happiness", current: happiness, max: 100, color: "#FF69B4" },
+    { label: "Health", current: health, max: 100, color: "#FF4444" },
+    { label: "Hydration", current: hydration, max: 100, color: "#4DA6FF" },
   ];
   return (
     <div className="health-box">
@@ -60,15 +49,6 @@ export default function HealthBars({
           <span className="health-percent">{bar.current}%</span>
         </div>
       ))}
-      {typeof temperature === "number" && (
-        <TemperatureBar
-          temperature={temperature}
-          onIncrease={onIncreaseTemp}
-          onDecrease={onDecreaseTemp}
-          chameleonType={chameleonType}
-          tempChangeUntil={tempChangeUntil}
-        />
-      )}
     </div>
   );
 }

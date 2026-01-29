@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import "./dashboard.css";
 import FourButtons from "../components/fourbuttons";
 import HowToPlay from "../components/helpButton";
@@ -11,46 +12,68 @@ export type ChameleonDashboard = {
   petType: string;
   userId: string | null;
 };
-import { useNavigate } from "react-router-dom";
 
-// Named export, safe to paste into any file
-export function TopLeftLoginButton() {
+
+
+const Dashboard: React.FC<ChameleonDashboard> = ({ petName, petType, userId }) => {
   const navigate = useNavigate();
 
-  return (
-    <button
-      onClick={() => navigate("/login")}
-      style={{
-        position: "fixed",
-        top: 20,
-        left: 20,
-        padding: "10px 16px",
-        backgroundColor: "#4285F4",
-        color: "#fff",
-        fontWeight: "bold",
-        border: "none",
-        borderRadius: 6,
-        cursor: "pointer",
-        boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
-        zIndex: 1000,
-        fontFamily: "sans-serif",
-        transition: "transform 0.1s",
-      }}
-      onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.95)")}
-      onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
-      onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
-    >
-      Login
-    </button>
-  );
-}
+  const handleSignOut = async () => {
+    const { auth } = await import("../firebase");
+    try {
+      await auth.signOut();
+      navigate("/");
+    } catch (error) {
+      console.error("Sign out error:", error);
+    }
+  };
 
-const Dashboard: React.FC<ChameleonDashboard> = ({ petName, petType }) => {
   return (
     <div className="dashboard-root">
+      {/* Login/Sign Out buttons in top right */}
+      {!userId && (
+        <button
+          onClick={() => navigate("/login")}
+          style={{
+            position: "fixed",
+            top: 20,
+            right: 20,
+            padding: "10px 20px",
+            backgroundColor: "#4285F4",
+            color: "white",
+            border: "none",
+            borderRadius: 5,
+            cursor: "pointer",
+            fontWeight: "bold",
+            zIndex: 999,
+          }}
+        >
+          Sign In
+        </button>
+      )}
+      
+      {userId && (
+        <button
+          onClick={handleSignOut}
+          style={{
+            position: "fixed",
+            top: 20,
+            right: 20,
+            padding: "10px 20px",
+            backgroundColor: "#db4437",
+            color: "white",
+            border: "none",
+            borderRadius: 5,
+            cursor: "pointer",
+            fontWeight: "bold",
+            zIndex: 999,
+          }}
+        >
+          Sign Out
+        </button>
+      )}
 
       {/* Components to display the health and actions of the chameleon */}
-      <TopLeftLoginButton />
       <main className="dashboard-main">
         <h2>Chameleon Dashboard</h2>
         <p>Pet Name: {petName}</p>

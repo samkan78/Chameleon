@@ -12,7 +12,6 @@ import { ChameleonNaming } from "./components/chameleonNaming";
 import Dashboard from "./screens/dashboard";
 import StartPage from "./screens/start-page";
 import LoggingIn from "./screens/login";
-
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { RestartAnytime } from "./components/restart";
 import { RestartProvider } from "./components/RestartContext";
@@ -132,46 +131,58 @@ function AppWithRestart({
     credentialResponse: CredentialResponse
   ) => {
     if (!credentialResponse.credential) return;
-
-    const credential = GoogleAuthProvider.credential(
-      credentialResponse.credential
-    );
-    await signInWithCredential(auth, credential);
-  };
+    
+    try {
+      const credential = GoogleAuthProvider.credential(credentialResponse.credential);
+      await signInWithCredential(auth, credential);
+    } catch (err) {
+      console.error("Login failed:", err);
+    }
+  }; // <--- Added this missing closing brace!
 
   if (isLoading) {
     return <div style={{ textAlign: "center", marginTop: 50 }}>Loading…</div>;
   }
 
   return (
-    <RestartProvider value={{ restartGame }}>
-      <RestartAnytime onRestart={() => setShowRestartModal(true)} />
+  <RestartProvider value={{ restartGame }}>
+    {/* 1. The button itself */}
+    <RestartAnytime onRestart={() => setShowRestartModal(true)} />
 
+    {/* 2. THE MISSING MODAL CODE - Add this section below: */}
+    {showRestartModal && (
+      <div style={{
+        position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+        backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 9999,
+        display: 'flex', justifyContent: 'center', alignItems: 'center'
+      }}>
+        <div style={{ 
+          backgroundColor: '#1a1a1a', padding: '2rem', borderRadius: '12px', 
+          border: '2px solid #333', textAlign: 'center', color: 'white' 
+        }}>
+          <h2 style={{ marginBottom: '1rem' }}>Restart Game?</h2>
+          <p style={{ marginBottom: '2rem', color: '#aaa' }}>This will delete your progress. Are you sure?</p>
+          <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
+            <button 
+              onClick={restartGame} 
+              style={{ padding: '10px 20px', backgroundColor: '#ff4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+            >
+              Yes, Restart
+            </button>
+            <button 
+              onClick={() => setShowRestartModal(false)} 
+              style={{ padding: '10px 20px', backgroundColor: '#444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
       <Routes>
         <Route path="/" element={<StartPage />} />
-
-        <Route
-          path="/login"
-          element={
-            <LoginPage
-              onPlayAsGuest={() => navigate("/choose")}
-              onGoogleLogin={handleGoogleLogin}
-            />
-          }
-        />
-
-        <Route
-          path="/choose"
-          element={
-            <ChoosePage
-              onSelect={(ch) => {
-                setSelectedChameleon(ch);
-                navigate("/name");
-              }}
-            />
-          }
-        />
-
+        <Route path="/login" element={<LoginPage onPlayAsGuest={() => navigate("/choose")} onGoogleLogin={handleGoogleLogin} />} />
+        <Route path="/choose" element={<ChoosePage onSelect={(ch) => { setSelectedChameleon(ch); navigate("/name"); }} />} />
         <Route
           path="/name"
           element={
@@ -209,28 +220,15 @@ function AppWithRestart({
   );
 }
 
-/* ---------- Small Pages ---------- */
+// --- HELPER COMPONENTS (Cleaned up duplicates) ---
 
-function LoginPage({
-  onPlayAsGuest,
-  onGoogleLogin,
-}: {
-  onPlayAsGuest: () => void;
-  onGoogleLogin: (cred: CredentialResponse) => void;
-}) {
+function LoginPage({ onPlayAsGuest, onGoogleLogin }: { onPlayAsGuest: () => void; onGoogleLogin: (credentialResponse: any) => void }) {
   return (
-    <LoggingIn
-      onPlayAsGuest={onPlayAsGuest}
-      onGoogleLogin={onGoogleLogin}
-    />
+    <LoggingIn onPlayAsGuest={onPlayAsGuest} onGoogleLogin={onGoogleLogin} />
   );
 }
 
-function ChoosePage({
-  onSelect,
-}: {
-  onSelect: (ch: Chameleon) => void;
-}) {
+function ChoosePage({ onSelect }: { onSelect: (ch: Chameleon) => void }) {
   return <BoxComponent onContinue={onSelect} />;
 }
 

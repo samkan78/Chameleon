@@ -1,5 +1,5 @@
 // src/components/SPLoader.tsx
-import React from "react";
+
 import Spinner from "../assets/Spinner.svg";
 
 export default function SPLoader() {

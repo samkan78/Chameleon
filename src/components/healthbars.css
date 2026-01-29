@@ -1,41 +1,68 @@
 .health-box {
   display: flex;
   flex-direction: column;
-  gap: 0.5px;
-  background: rgba(255, 255, 255, 0.15);
-  padding: 16px;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.35));
+  padding: 0.75rem;
   border-radius: 8px;
-  width: 280px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 280px;
+  margin: 0 auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .health-bar-container {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 0.3rem;
 }
 
 .health-label {
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #333;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .health-bar-bg {
-  height: 20px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 4px;
+  height: 16px;
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 6px;
   overflow: hidden;
   position: relative;
+  border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .health-bar-fill {
   height: 100%;
-  transition: width 0.3s ease;
-  border-radius: 4px;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease;
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+}
+
+.health-bar-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
 .health-percent {
-  font-size: 0.8rem;
-  color: #666;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.8);
   text-align: right;
+  margin-top: 0.15rem;
 }

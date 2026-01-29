@@ -1,29 +1,22 @@
 import "../components/start-and-login.css";
 import { GoogleLogin } from "@react-oauth/google";
-import type { CredentialResponse } from "@react-oauth/google";
 
 type LoggingInProps = {
   onPlayAsGuest: () => void;
-  onGoogleLogin: (credentialResponse: CredentialResponse) => void;
+  onGoogleLogin: (credentialResponse: any) => void;
 };
 
-export default function LoggingIn({
-  onPlayAsGuest,
-  onGoogleLogin,
-}: LoggingInProps) {
+export default function LoggingIn({ onPlayAsGuest, onGoogleLogin }: LoggingInProps) {
   return (
     <div className="login-container">
       <div className="login-content-container">
         <h1 className="login-title">Welcome!</h1>
 
         <div className="button-group">
-          {/* Google OAuth Button */}
           <GoogleLogin
             onSuccess={onGoogleLogin}
-            onError={() => console.log("Google login failed")}
+            onError={() => console.log("Login Failed")}
           />
-
-          {/* Guest Login Button */}
           <button className="guest-login-button" onClick={onPlayAsGuest}>
             <svg
               className="guest-icon"

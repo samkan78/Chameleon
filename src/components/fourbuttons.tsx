@@ -4,8 +4,6 @@ import "./fourbuttons.css";
 import dingSound from "../assets/ding.mp3";
 import HealthBars from "./healthbars";
 import ToastContext from "./ToastService";
-import { Money } from "./money";
-import { FoodInventory } from "./foodInventory";
 
 //chameleon images
 import Level_1_PantherChameleonHappy from "../assets/chameleonImages/Panther Chameleon/Level 1/Panther Chameleon Level 1 YELLOW.png";
@@ -50,7 +48,6 @@ const energyStartLevel = 50;
 const hungerStartLevel = 50;
 const happinessStartLevel = 50;
 const healthStartLevel = 50;
-const temperatureStart = 70;
 
 // ---------------------------
 // subbutton actions (initial)
@@ -111,7 +108,6 @@ const FourButtons = ({ petType, userId, saveGameData, setWinLose, setOpenModal }
   const [hunger, setHunger] = useState(hungerStartLevel);
   const [happiness, setHappiness] = useState(happinessStartLevel);
   const [health, setHealth] = useState(healthStartLevel);
-  const [temperature, setTemperature] = useState(temperatureStart);
   const [trickt2unlocked, setTrickt2unlocked] = useState(false);
   const [foodInventory, setFoodInventory] = useState(0);
   const [lockedActions, setLockedActions] = useState<Set<string>>(new Set());
@@ -320,85 +316,140 @@ const FourButtons = ({ petType, userId, saveGameData, setWinLose, setOpenModal }
       <div className="left-panel">
         <img src={getImagePath()} alt="Chameleon" className="chameleon-image" />
       </div>
-      <Money coins={coins} />
-      <FoodInventory foodInventory={foodInventory} />
-      <LevelDisplay level={level} />
+      
+      <div className="right-panel">
+        <div style={{ marginBottom: "0.5rem" }}>
+          <LevelDisplay level={level} />
+        </div>
+        
+        <HealthBars 
+          energy={energy} 
+          hunger={hunger} 
+          happiness={happiness} 
+          health={health} 
+          hydration={hydration}
+        />
 
-      <HealthBars 
-        energy={energy} 
-        hunger={hunger} 
-        happiness={happiness} 
-        health={health} 
-        hydration={hydration} 
-        temperature={temperature}
-        onIncreaseTemp={() => setTemperature((t) => Math.min(150, t + 1))}
-        onDecreaseTemp={() => setTemperature((t) => Math.max(30, t - 1))}
-      />
-
-      {/* Main buttons */}
-      <div className="main-buttons">
-        {(Object.keys(actionsState) as Category[]).map(category => (
-          <button key={category} className={`main-btn ${active === category ? "active" : ""}`} onClick={() => toggleCategory(category)}>
-            {category}
-          </button>
-        ))}
-      </div>
-
-      {/* Subbuttons */}
-      {active && (
-        <div className="sub-buttons">
-          {actionsState[active].map(action => {
-            const cooldownEnd = cooldowns[action.name] ?? 0;
-            const cooldownRemaining = Math.max(0, cooldownEnd - Date.now());
-            const disabled = cooldownRemaining > 0;
-            const formatMs = (ms: number) => { const total = Math.ceil(ms/1000); return `${Math.floor(total/60)}:${(total%60).toString().padStart(2,"0")}`; };
+        {/* Main buttons */}
+        <div className="main-buttons">
+          {(Object.keys(actionsState) as Category[]).map(category => {
+            const categoryEmojis: { [key in Category]: string } = {
+              Health: "💊",
+              Care: "🧴",
+              Tricks: "🎪",
+              Shop: "🛍️",
+              Earn: "💰"
+            };
+            const categoryColors: { [key in Category]: string } = {
+              Health: "#FF6B6B",
+              Care: "#4ECDC4",
+              Tricks: "#FFE66D",
+              Shop: "#95E1D3",
+              Earn: "#C7CEEA"
+            };
             return (
-              <button key={action.name} className="sub-btn" disabled={disabled} onClick={() => handleActionClick(action)}>
-                {action.name} {action.cost !== undefined && `— $${Math.abs(action.cost)}`} {cooldownRemaining>0 && `— ${formatMs(cooldownRemaining)}`}
+              <button 
+                key={category} 
+                className={`main-btn ${active === category ? "active" : ""}`} 
+                onClick={() => toggleCategory(category)}
+                style={{
+                  backgroundColor: active === category ? categoryColors[category] : "#1a1a1a",
+                  color: active === category ? "#000" : "#fff",
+                  borderColor: categoryColors[category],
+                  transition: "all 0.2s ease"
+                }}
+              >
+                {categoryEmojis[category]} {category}
               </button>
             );
           })}
-
-          {/* Add Earn action UI when Earn is active */}
-          {active === "Earn" && (
-            <div style={{ marginTop: 12 }}>
-              <button
-                className="sub-btn"
-                onClick={() => {
-                  setShowAddEarnModal(true);
-                  setEarnName("");
-                  setEarnReward("");
-                }}
-              >
-                + Add Earn Action
-              </button>
-            </div>
-          )}
         </div>
-      )}
 
-      {/* Add Earn Action Modal */}
-      {showAddEarnModal && (
-        <div style={{
-          position: "fixed",
-          inset: 0,
-          background: "rgba(0,0,0,0.6)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          zIndex: 2000,
-        }}>
+        {/* Subbuttons */}
+        {active && (
+          <div className="sub-buttons">
+            {actionsState[active].map(action => {
+              const actionEmojis: Record<string, string> = {
+                // Health actions
+                "Check Eyes": "👁️",
+                "Trim Nails": "✂️",
+                "Check Skin Shedding": "🌱",
+                "Clean Enclosure": "🧹",
+                "Vet Visit": "🏥",
+                // Care actions
+                "Play": "🎮",
+                "Misting": "💦",
+                "Feed": "🍽️",
+                "Nap": "😴",
+                // Tricks actions
+                "Climbing Practice": "🧗",
+                "Hand Approach": "👋",
+                "Fetch": "🎾",
+                "Target Training": "🎯",
+                // Shop actions
+                "Buy Crickets": "🦗",
+                "Buy Mealworms": "🐛",
+                "Purchase Branches": "🌿",
+                // Earn actions
+                "Clean Room": "🧹",
+                "Do Homework": "📚",
+                "Take a shower": "🚿",
+                "Do laundry": "🧺",
+              };
+              
+              const cooldownEnd = cooldowns[action.name] ?? 0;
+              const cooldownRemaining = Math.max(0, cooldownEnd - Date.now());
+              const disabled = cooldownRemaining > 0;
+              const formatMs = (ms: number) => { const total = Math.ceil(ms/1000); return `${Math.floor(total/60)}:${(total%60).toString().padStart(2,"0")}`; };
+              const emoji = actionEmojis[action.name] || "•";
+              return (
+                <button key={action.name} className="sub-btn" disabled={disabled} onClick={() => handleActionClick(action)}>
+                  {emoji} {action.name} {action.cost !== undefined && `— $${Math.abs(action.cost)}`} {cooldownRemaining>0 && `— ${formatMs(cooldownRemaining)}`}
+                </button>
+              );
+            })}
+
+            {/* Add Earn action UI when Earn is active */}
+            {active === "Earn" && (
+              <div style={{ marginTop: 12 }}>
+                <button
+                  className="sub-btn"
+                  onClick={() => {
+                    setShowAddEarnModal(true);
+                    setEarnName("");
+                    setEarnReward("");
+                  }}
+                >
+                  + Add Earn Action
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Add Earn Action Modal */}
+        {showAddEarnModal && (
           <div style={{
-            background: "white",
-            padding: 20,
-            borderRadius: 8,
-            width: 320,
-            textAlign: "center",
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.6)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 2000,
           }}>
-            <h2 className="text-lg font-black text-gray-800">Add Earn Action</h2>
+            <div style={{
+              background: "white",
+              padding: 28,
+              borderRadius: 12,
+              width: 360,
+              textAlign: "center",
+              boxShadow: "0 10px 40px rgba(0, 0, 0, 0.2)",
+            }}>
+            <h2 style={{fontSize: "1.5rem", fontWeight: "700", color: "#1a1a1a", margin: "0 0 20px 0"}}>Add Earn Action</h2>
             
             <div style={{ marginTop: 15, textAlign: "left" }}>
-              <label style={{ display: "block", marginBottom: 5, fontWeight: "bold", color: "#333" }}>
+              <label style={{ display: "block", marginBottom: 8, fontWeight: "600", color: "#222", fontSize: "0.95rem" }}>
                 Action Name
               </label>
               <input
@@ -408,15 +459,20 @@ const FourButtons = ({ petType, userId, saveGameData, setWinLose, setOpenModal }
                 placeholder="e.g., Wash Dishes"
                 style={{
                   width: "100%",
-                  padding: "8px",
-                  border: "1px solid #ccc",
-                  borderRadius: "4px",
+                  padding: "10px 12px",
+                  border: "2px solid #e0e0e0",
+                  borderRadius: "6px",
                   boxSizing: "border-box",
-                  marginBottom: 12,
+                  marginBottom: 16,
+                  fontSize: "1rem",
+                  fontFamily: "inherit",
+                  transition: "border-color 0.2s ease",
                 }}
+                onFocus={(e) => e.target.style.borderColor = "#333"}
+                onBlur={(e) => e.target.style.borderColor = "#e0e0e0"}
               />
 
-              <label style={{ display: "block", marginBottom: 5, fontWeight: "bold", color: "#333" }}>
+              <label style={{ display: "block", marginBottom: 8, fontWeight: "600", color: "#222", fontSize: "0.95rem" }}>
                 Reward ($)
               </label>
               <input
@@ -434,15 +490,20 @@ const FourButtons = ({ petType, userId, saveGameData, setWinLose, setOpenModal }
                 placeholder="e.g., 25"
                 style={{
                   width: "100%",
-                  padding: "8px",
-                  border: "1px solid #ccc",
-                  borderRadius: "4px",
+                  padding: "10px 12px",
+                  border: "2px solid #e0e0e0",
+                  borderRadius: "6px",
                   boxSizing: "border-box",
+                  fontSize: "1rem",
+                  fontFamily: "inherit",
+                  transition: "border-color 0.2s ease",
                 }}
+                onFocus={(e) => e.target.style.borderColor = "#333"}
+                onBlur={(e) => e.target.style.borderColor = "#e0e0e0"}
               />
             </div>
 
-            <div className="flex gap-4" style={{ marginTop: 20 }}>
+            <div style={{ marginTop: 24, display: "flex", gap: 12, justifyContent: "center" }}>
               <button
                 onClick={() => {
                   if (!earnName.trim()) {
@@ -474,8 +535,29 @@ const FourButtons = ({ petType, userId, saveGameData, setWinLose, setOpenModal }
                   setEarnName("");
                   setEarnReward("");
                 }}
-                className="btn btn-success w-full"
-                style={{ backgroundColor: "#28a745", color: "white" }}
+                style={{
+                  padding: "10px 20px",
+                  backgroundColor: "#28a745",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  fontWeight: 600,
+                  fontSize: "0.95rem",
+                  transition: "all 0.2s ease",
+                  flex: 1,
+                  boxShadow: "0 2px 6px rgba(0, 0, 0, 0.1)",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#218838";
+                  e.currentTarget.style.boxShadow = "0 4px 10px rgba(0, 0, 0, 0.15)";
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "#28a745";
+                  e.currentTarget.style.boxShadow = "0 2px 6px rgba(0, 0, 0, 0.1)";
+                  e.currentTarget.style.transform = "translateY(0)";
+                }}
               >
                 Add
               </button>
@@ -485,14 +567,37 @@ const FourButtons = ({ petType, userId, saveGameData, setWinLose, setOpenModal }
                   setEarnName("");
                   setEarnReward("");
                 }}
-                className="btn btn-light w-full"
+                style={{
+                  padding: "10px 20px",
+                  backgroundColor: "#f0f0f0",
+                  color: "#333",
+                  border: "2px solid #ddd",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  fontWeight: 600,
+                  fontSize: "0.95rem",
+                  transition: "all 0.2s ease",
+                  flex: 1,
+                  boxShadow: "0 2px 6px rgba(0, 0, 0, 0.05)",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#e0e0e0";
+                  e.currentTarget.style.boxShadow = "0 4px 10px rgba(0, 0, 0, 0.1)";
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "#f0f0f0";
+                  e.currentTarget.style.boxShadow = "0 2px 6px rgba(0, 0, 0, 0.05)";
+                  e.currentTarget.style.transform = "translateY(0)";
+                }}
               >
                 Cancel
               </button>
             </div>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

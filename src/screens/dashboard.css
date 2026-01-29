@@ -1,62 +1,85 @@
 .dashboard-root {
   display: flex;
-  align-items: stretch; /* allow children to use full height */
-  gap: 20px;
-  padding: 16px;
-  height: 100vh;
-}
-
-.left-panel {
-  width: 160px;
-  display: flex;
-  justify-content: flex-start; /* left */
-  align-items: center; /* vertical center */
-  padding-left: 24px;
-}
-
-.dashboard-main {
-  flex: 1;
-  padding: 24px;
-}
-
-/* ensure the image box appears as a lineless, visible box */
-.left-panel > div {
-  width: 100%;
-}
-.dashboard-root {
-  display: flex;
   flex-direction: column;
   align-items: center;
   width: 100%;
-  min-height: 100vh;
-  padding: 20px;
+  height: 100vh;
+  overflow: hidden;
+  padding: 0;
+  background: linear-gradient(135deg, #3488cd 0%, #2a6aad 100%);
+  font-family: "Nunito", sans-serif;
+}
+
+.dashboard-main {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.25rem 0.75rem;
+  overflow-y: auto;
+}
+
+.dashboard-main h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  margin: 0;
+  text-align: center;
+  letter-spacing: -0.3px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.dashboard-main p {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0.1rem 0 0 0;
+  text-align: center;
+  font-weight: 500;
 }
 
 .central-action-area {
   display: flex;
-  flex-direction: row; /* Aligns items horizontally */
-  justify-content: space-between; /* Space between the 3 sections */
-  align-items: center; /* Centers items vertically relative to each other */
+  flex-direction: row;
+  justify-content: center;
+  align-items: flex-start;
   width: 100%;
-  max-width: 1200px;
-  margin: 40px 0;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
-.stats-panel,
-.controls-panel {
-  flex: 1; /* Gives the left and right sides equal weight */
+.stats-panel {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.controls-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: center;
 }
 
 .chameleon-display {
-  flex: 2; /* Gives the image more space in the middle */
   display: flex;
   justify-content: center;
+  align-items: center;
+  min-height: auto;
+  height: 160px;
+  width: auto;
 }
 
 .chameleon-display img {
-  max-width: 400px; /* Adjust based on your image size */
+  max-width: 140px;
+  max-height: 160px;
   height: auto;
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.15));
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.chameleon-display img:hover {
+  transform: scale(1.02);
 }
