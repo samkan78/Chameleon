@@ -66,7 +66,9 @@
 
 .play-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 0 #088522, 0 16px 30px;
+  box-shadow:
+    0 12px 0 #088522,
+    0 16px 30px;
 }
 
 .play-icon {

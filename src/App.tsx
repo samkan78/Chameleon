@@ -13,7 +13,6 @@ import Dashboard from "./screens/dashboard";
 import StartPage from "./screens/start-page";
 import LoggingIn from "./screens/login";
 import { GoogleOAuthProvider } from "@react-oauth/google";
-import { RestartAnytime } from "./components/restart";
 import { RestartProvider } from "./components/RestartContext";
 
 import { auth, db } from "./firebase";
@@ -26,8 +25,9 @@ import { doc, setDoc, getDoc } from "firebase/firestore";
 import type { CredentialResponse } from "@react-oauth/google";
 
 export default function App() {
-  const [selectedChameleon, setSelectedChameleon] =
-    useState<Chameleon | null>(null);
+  const [selectedChameleon, setSelectedChameleon] = useState<Chameleon | null>(
+    null,
+  );
   const [petName, setPetName] = useState("");
 
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -106,7 +106,7 @@ function AppWithRestart({
       await setDoc(
         doc(db, "users", user.uid),
         { selectedChameleon, petName },
-        { merge: true }
+        { merge: true },
       );
     }, 800);
   }, [selectedChameleon, petName, user]);
@@ -127,13 +127,13 @@ function AppWithRestart({
     navigate("/");
   };
 
-  const handleGoogleLogin = async (
-    credentialResponse: CredentialResponse
-  ) => {
+  const handleGoogleLogin = async (credentialResponse: CredentialResponse) => {
     if (!credentialResponse.credential) return;
-    
+
     try {
-      const credential = GoogleAuthProvider.credential(credentialResponse.credential);
+      const credential = GoogleAuthProvider.credential(
+        credentialResponse.credential,
+      );
       await signInWithCredential(auth, credential);
     } catch (err) {
       console.error("Login failed:", err);
@@ -145,44 +145,93 @@ function AppWithRestart({
   }
 
   return (
-  <RestartProvider value={{ restartGame }}>
-    {/* 1. The button itself */}
-    <RestartAnytime onRestart={() => setShowRestartModal(true)} />
-
-    {/* 2. THE MISSING MODAL CODE - Add this section below: */}
-    {showRestartModal && (
-      <div style={{
-        position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
-        backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 9999,
-        display: 'flex', justifyContent: 'center', alignItems: 'center'
-      }}>
-        <div style={{ 
-          backgroundColor: '#1a1a1a', padding: '2rem', borderRadius: '12px', 
-          border: '2px solid #333', textAlign: 'center', color: 'white' 
-        }}>
-          <h2 style={{ marginBottom: '1rem' }}>Restart Game?</h2>
-          <p style={{ marginBottom: '2rem', color: '#aaa' }}>This will delete your progress. Are you sure?</p>
-          <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
-            <button 
-              onClick={restartGame} 
-              style={{ padding: '10px 20px', backgroundColor: '#ff4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+    <RestartProvider value={{ restartGame }}>
+      {/* Restart Modal */}
+      {showRestartModal && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            backgroundColor: "rgba(0,0,0,0.85)",
+            zIndex: 9999,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: "#1a1a1a",
+              padding: "2rem",
+              borderRadius: "12px",
+              border: "2px solid #333",
+              textAlign: "center",
+              color: "white",
+            }}
+          >
+            <h2 style={{ marginBottom: "1rem" }}>Restart Game?</h2>
+            <p style={{ marginBottom: "2rem", color: "#aaa" }}>
+              This will delete your progress. Are you sure?
+            </p>
+            <div
+              style={{ display: "flex", gap: "15px", justifyContent: "center" }}
             >
-              Yes, Restart
-            </button>
-            <button 
-              onClick={() => setShowRestartModal(false)} 
-              style={{ padding: '10px 20px', backgroundColor: '#444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
-            >
-              Cancel
-            </button>
+              <button
+                onClick={restartGame}
+                style={{
+                  padding: "10px 20px",
+                  backgroundColor: "#ff4444",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  fontWeight: "bold",
+                }}
+              >
+                Yes, Restart
+              </button>
+              <button
+                onClick={() => setShowRestartModal(false)}
+                style={{
+                  padding: "10px 20px",
+                  backgroundColor: "#444",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                }}
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    )}
+      )}
       <Routes>
         <Route path="/" element={<StartPage />} />
-        <Route path="/login" element={<LoginPage onPlayAsGuest={() => navigate("/choose")} onGoogleLogin={handleGoogleLogin} />} />
-        <Route path="/choose" element={<ChoosePage onSelect={(ch) => { setSelectedChameleon(ch); navigate("/name"); }} />} />
+        <Route
+          path="/login"
+          element={
+            <LoginPage
+              onPlayAsGuest={() => navigate("/choose")}
+              onGoogleLogin={handleGoogleLogin}
+            />
+          }
+        />
+        <Route
+          path="/choose"
+          element={
+            <ChoosePage
+              onSelect={(ch) => {
+                setSelectedChameleon(ch);
+                navigate("/name");
+              }}
+            />
+          }
+        />
         <Route
           path="/name"
           element={
@@ -222,7 +271,13 @@ function AppWithRestart({
 
 // --- HELPER COMPONENTS (Cleaned up duplicates) ---
 
-function LoginPage({ onPlayAsGuest, onGoogleLogin }: { onPlayAsGuest: () => void; onGoogleLogin: (credentialResponse: any) => void }) {
+function LoginPage({
+  onPlayAsGuest,
+  onGoogleLogin,
+}: {
+  onPlayAsGuest: () => void;
+  onGoogleLogin: (credentialResponse: any) => void;
+}) {
   return (
     <LoggingIn onPlayAsGuest={onPlayAsGuest} onGoogleLogin={onGoogleLogin} />
   );
@@ -239,10 +294,5 @@ function NamePage({
   chameleon: Chameleon;
   onNameSubmit: (name: string) => void;
 }) {
-  return (
-    <ChameleonNaming
-      chameleon={chameleon}
-      onContinue={onNameSubmit}
-    />
-  );
+  return <ChameleonNaming chameleon={chameleon} onContinue={onNameSubmit} />;
 }

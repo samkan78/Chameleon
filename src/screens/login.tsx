@@ -6,7 +6,10 @@ type LoggingInProps = {
   onGoogleLogin: (credentialResponse: any) => void;
 };
 
-export default function LoggingIn({ onPlayAsGuest, onGoogleLogin }: LoggingInProps) {
+export default function LoggingIn({
+  onPlayAsGuest,
+  onGoogleLogin,
+}: LoggingInProps) {
   return (
     <div className="login-container">
       <div className="login-content-container">

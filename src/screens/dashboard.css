@@ -1,85 +1,94 @@
-.dashboard-root {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  height: 100vh;
-  overflow: hidden;
+@import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@400;600;700&display=swap");
+
+* {
+  margin: 0;
   padding: 0;
-  background: linear-gradient(135deg, #3488cd 0%, #2a6aad 100%);
+  box-sizing: border-box;
+}
+
+.dashboard-root {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #3488cd;
   font-family: "Nunito", sans-serif;
+  position: relative;
+  overflow: hidden;
 }
 
 .dashboard-main {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1.25rem 0.75rem;
-  overflow-y: auto;
+  position: relative;
+  background: white;
+  border-radius: 50px;
+  padding: 3rem 3rem;
+  max-width: 1000px;
+  width: 90%;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
 }
 
 .dashboard-main h2 {
-  font-size: 1.5rem;
+  font-size: 3rem;
   font-weight: 700;
-  color: white;
-  margin: 0;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: 0.02em;
+  font-family: "Fredoka", sans-serif;
+  text-shadow: 0 4px 0 rgba(0, 0, 0, 0.05);
   text-align: center;
-  letter-spacing: -0.3px;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  color: #1fcc1f;
 }
 
 .dashboard-main p {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.9);
-  margin: 0.1rem 0 0 0;
+  font-size: 1.125rem;
+  color: #60667c;
+  margin: 0.25rem 0;
+  font-weight: 600;
   text-align: center;
-  font-weight: 500;
 }
 
-.central-action-area {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: flex-start;
-  width: 100%;
-  gap: 0.75rem;
-  flex-wrap: wrap;
+/* Sign In/Out buttons with matching style */
+.dashboard-root button[style*="fixed"] {
+  font-family: "Fredoka", sans-serif !important;
+  border-radius: 25px !important;
+  border: 3px solid rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.1) !important;
 }
 
-.stats-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  align-items: center;
+.dashboard-root button[style*="fixed"]:hover {
+  transform: translateY(-2px) !important;
+  box-shadow:
+    0 8px 0 rgba(0, 0, 0, 0.1),
+    0 10px 20px rgba(0, 0, 0, 0.2) !important;
 }
 
-.controls-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  align-items: center;
+/* Responsive design */
+@media (max-width: 768px) {
+  .dashboard-main {
+    padding: 2.5rem 2.5rem;
+    border-radius: 40px;
+  }
+
+  .dashboard-main h2 {
+    font-size: 2.5rem;
+  }
+
+  .dashboard-main p {
+    font-size: 1rem;
+  }
 }
 
-.chameleon-display {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: auto;
-  height: 160px;
-  width: auto;
-}
+@media (max-width: 480px) {
+  .dashboard-main {
+    padding: 2rem 1.5rem;
+    border-radius: 30px;
+  }
 
-.chameleon-display img {
-  max-width: 140px;
-  max-height: 160px;
-  height: auto;
-  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.15));
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
+  .dashboard-main h2 {
+    font-size: 2rem;
+  }
 
-.chameleon-display img:hover {
-  transform: scale(1.02);
+  .dashboard-main p {
+    font-size: 0.9rem;
+  }
 }

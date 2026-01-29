@@ -1,4 +1,3 @@
-import React from "react";
 import { BoxComponent } from "../components/chameleonChooser"; // adjust path if needed
 import "../screens/homepage.css";
 
