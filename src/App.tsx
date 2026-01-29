@@ -11,24 +11,27 @@ import type { Chameleon } from "./components/chameleonChooser";
 import { ChameleonNaming } from "./components/chameleonNaming";
 import Dashboard from "./screens/dashboard";
 import StartPage from "./screens/start-page";
-import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
+import LoggingIn from "./screens/login";
+
+import { GoogleOAuthProvider } from "@react-oauth/google";
 import { RestartAnytime } from "./components/restart";
 import { RestartProvider } from "./components/RestartContext";
-import { auth, db } from "./firebase";
-import { signInWithCredential, GoogleAuthProvider, onAuthStateChanged } from "firebase/auth";
-import { doc, setDoc, getDoc } from "firebase/firestore";
 
+import { auth, db } from "./firebase";
+import {
+  signInWithCredential,
+  GoogleAuthProvider,
+  onAuthStateChanged,
+} from "firebase/auth";
+import { doc, setDoc, getDoc } from "firebase/firestore";
+import type { CredentialResponse } from "@react-oauth/google";
 
 export default function App() {
-  const [selectedChameleon, setSelectedChameleon] = useState<Chameleon | null>(null);
+  const [selectedChameleon, setSelectedChameleon] =
+    useState<Chameleon | null>(null);
   const [petName, setPetName] = useState("");
 
-  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "dummy-client-id";
-
-  console.log(
-    "VITE_GOOGLE_CLIENT_ID:",
-    clientId
-  );
+  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
   return (
     <GoogleOAuthProvider clientId={clientId}>
@@ -61,305 +64,174 @@ function AppWithRestart({
   const [isLoading, setIsLoading] = useState(true);
   const saveTimeoutRef = useRef<number | null>(null);
 
-  // Listen for auth state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
-      console.log("Auth state:", currentUser ? "Signed in" : "Signed out");
-      // Always set loading to false when auth state is determined
       setIsLoading(false);
     });
-    return () => unsubscribe();
+    return unsubscribe;
   }, []);
 
-  // Load chameleon selection and pet name when user signs in
   useEffect(() => {
-    if (user) {
-      const loadUserData = async () => {
-        setIsLoading(true);
-        try {
-          // Try loading from Firestore first
-          const userDocRef = doc(db, "users", user.uid);
-          const userDoc = await getDoc(userDocRef);
-          
-          if (userDoc.exists()) {
-            const data = userDoc.data();
-            console.log("Loaded user data from Firestore:", data);
-            
-            if (data.selectedChameleon && data.petName) {
-              setSelectedChameleon(data.selectedChameleon);
-              setPetName(data.petName);
-              setIsLoading(false);
-              navigate('/dashboard');
-              return;
-            }
-          }
-          
-          // Fallback to localStorage if Firestore has no data
-          const savedChameleon = localStorage.getItem('selectedChameleon');
-          const savedName = localStorage.getItem('petName');
-          
-          if (savedChameleon && savedName) {
-            console.log("Loaded user data from localStorage (fallback)");
-            setSelectedChameleon(JSON.parse(savedChameleon));
-            setPetName(savedName);
-            setIsLoading(false);
-            navigate('/dashboard');
-            return;
-          }
-        } catch (error) {
-          console.error("Error loading user data:", error);
-          
-          // If Firestore fails, try localStorage
-          try {
-            const savedChameleon = localStorage.getItem('selectedChameleon');
-            const savedName = localStorage.getItem('petName');
-            
-            if (savedChameleon && savedName) {
-              console.log("Loaded user data from localStorage (error fallback)");
-              setSelectedChameleon(JSON.parse(savedChameleon));
-              setPetName(savedName);
-              setIsLoading(false);
-              navigate('/dashboard');
-              return;
-            }
-          } catch (localError) {
-            console.error("Error loading from localStorage:", localError);
+    if (!user) return;
+
+    const loadUserData = async () => {
+      setIsLoading(true);
+      try {
+        const ref = doc(db, "users", user.uid);
+        const snap = await getDoc(ref);
+
+        if (snap.exists()) {
+          const data = snap.data();
+          if (data.selectedChameleon && data.petName) {
+            setSelectedChameleon(data.selectedChameleon);
+            setPetName(data.petName);
+            navigate("/dashboard");
           }
         }
-        setIsLoading(false);
-      };
-      loadUserData();
-    }
+      } catch (err) {
+        console.error(err);
+      }
+      setIsLoading(false);
+    };
+
+    loadUserData();
   }, [user]);
 
-  // Save chameleon selection whenever it changes
   useEffect(() => {
-    if (selectedChameleon) {
-      // Save to localStorage
-      try {
-        localStorage.setItem('selectedChameleon', JSON.stringify(selectedChameleon));
-      } catch (error) {
-        console.error("Error saving to localStorage:", error);
-      }
-      
-      // Save to Firestore if user is signed in (debounced)
-      if (user && petName) {
-        if (saveTimeoutRef.current) {
-          clearTimeout(saveTimeoutRef.current);
-        }
-        
-        saveTimeoutRef.current = window.setTimeout(async () => {
-          try {
-            const userDocRef = doc(db, "users", user.uid);
-            await setDoc(userDocRef, {
-              selectedChameleon,
-              petName,
-              updatedAt: new Date().toISOString()
-            }, { merge: true });
-            console.log("Saved chameleon selection to Firestore");
-          } catch (error) {
-            console.error("Error saving to Firestore:", error);
-          }
-        }, 1000);
-      }
-    }
-  }, [selectedChameleon, user, petName]);
+    if (!user || !selectedChameleon || !petName) return;
 
-  // Save pet name whenever it changes
-  useEffect(() => {
-    if (petName) {
-      // Save to localStorage
-      try {
-        localStorage.setItem('petName', petName);
-      } catch (error) {
-        console.error("Error saving to localStorage:", error);
-      }
-      
-      // Save to Firestore if user is signed in (debounced)
-      if (user && selectedChameleon) {
-        if (saveTimeoutRef.current) {
-          clearTimeout(saveTimeoutRef.current);
-        }
-        
-        saveTimeoutRef.current = window.setTimeout(async () => {
-          try {
-            const userDocRef = doc(db, "users", user.uid);
-            await setDoc(userDocRef, {
-              selectedChameleon,
-              petName,
-              updatedAt: new Date().toISOString()
-            }, { merge: true });
-            console.log("Saved pet name to Firestore");
-          } catch (error) {
-            console.error("Error saving to Firestore:", error);
-          }
-        }, 1000);
-      }
-    }
-  }, [petName, user, selectedChameleon]);
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+
+    saveTimeoutRef.current = window.setTimeout(async () => {
+      await setDoc(
+        doc(db, "users", user.uid),
+        { selectedChameleon, petName },
+        { merge: true }
+      );
+    }, 800);
+  }, [selectedChameleon, petName, user]);
 
   const restartGame = async () => {
-    console.log("Restart triggered");
     setSelectedChameleon(null);
     setPetName("");
-    
-    // Clear localStorage
-    try {
-      localStorage.removeItem('selectedChameleon');
-      localStorage.removeItem('petName');
-    } catch (error) {
-      console.error("Error clearing localStorage:", error);
-    }
-    
-    // Clear Firestore
+    localStorage.clear();
+
     if (user) {
-      try {
-        const userDocRef = doc(db, "users", user.uid);
-        await setDoc(userDocRef, {
-          selectedChameleon: null,
-          petName: null,
-          updatedAt: new Date().toISOString()
-        });
-        console.log("Cleared user data from Firestore");
-      } catch (error) {
-        console.error("Error clearing user data from Firestore:", error);
-      }
+      await setDoc(doc(db, "users", user.uid), {
+        selectedChameleon: null,
+        petName: null,
+      });
     }
-    
+
     setShowRestartModal(false);
     navigate("/");
   };
 
-  const handleGoogleLogin = async (credentialResponse: any) => {
-    try {
-      const credential = GoogleAuthProvider.credential(credentialResponse.credential);
-      await signInWithCredential(auth, credential);
-      console.log("Successfully signed in!");
-    } catch (error) {
-      console.error("Login error:", error);
-    }
-  };
+  const handleGoogleLogin = async (
+    credentialResponse: CredentialResponse
+  ) => {
+    if (!credentialResponse.credential) return;
 
-  const handleSignOut = async () => {
-    try {
-      await auth.signOut();
-      setIsLoading(false);
-      console.log("Signed out successfully");
-    } catch (error) {
-      console.error("Sign out error:", error);
-    }
+    const credential = GoogleAuthProvider.credential(
+      credentialResponse.credential
+    );
+    await signInWithCredential(auth, credential);
   };
 
   if (isLoading) {
-    return (
-      <div style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "100vh",
-        fontSize: "20px",
-        fontFamily: "sans-serif"
-      }}>
-        Loading...
-      </div>
-    );
+    return <div style={{ textAlign: "center", marginTop: 50 }}>Loading…</div>;
   }
 
   return (
     <RestartProvider value={{ restartGame }}>
       <RestartAnytime onRestart={() => setShowRestartModal(true)} />
 
-      {showRestartModal && (
-        <div style={{
-          position: "fixed",
-          inset: 0,
-          background: "rgba(0,0,0,0.6)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          zIndex: 2000,
-        }}>
-          <div style={{
-            background: "white",
-            padding: 20,
-            borderRadius: 8,
-            width: 300,
-            textAlign: "center",
-          }}>
-            <h2 className="text-lg font-black text-gray-800">Restart Game?</h2>
-            <p className="text-sm text-gray-500">Your progress will be lost.</p>
-
-            <div className="flex gap-4">
-              <button onClick={restartGame} className="btn btn-danger w-full">
-                Confirm
-              </button>
-              <button onClick={() => setShowRestartModal(false)} className="btn btn-light w-full">
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       <Routes>
         <Route path="/" element={<StartPage />} />
-        <Route path="/choose" element={<ChoosePage onSelect={setSelectedChameleon} />} />
+
+        <Route
+          path="/login"
+          element={
+            <LoginPage
+              onPlayAsGuest={() => navigate("/choose")}
+              onGoogleLogin={handleGoogleLogin}
+            />
+          }
+        />
+
+        <Route
+          path="/choose"
+          element={
+            <ChoosePage
+              onSelect={(ch) => {
+                setSelectedChameleon(ch);
+                navigate("/name");
+              }}
+            />
+          }
+        />
+
         <Route
           path="/name"
-          element={selectedChameleon ? (
-            <NamePage chameleon={selectedChameleon} onNameSubmit={setPetName} />
-          ) : (
-            <div>Please select a chameleon first.</div>
-          )}
+          element={
+            selectedChameleon ? (
+              <NamePage
+                chameleon={selectedChameleon}
+                onNameSubmit={(name) => {
+                  setPetName(name);
+                  navigate("/dashboard");
+                }}
+              />
+            ) : (
+              <div>Please select a chameleon first.</div>
+            )
+          }
         />
+
         <Route
           path="/dashboard"
-          element={selectedChameleon && petName ? (
-            <Dashboard
-              image={selectedChameleon.image}
-              petName={petName}
-              petType={selectedChameleon.name}
-              userId={user?.uid || null}
-            />
-          ) : (
-            <div>Please complete the steps first.</div>
-          )}
+          element={
+            selectedChameleon && petName ? (
+              <Dashboard
+                image={selectedChameleon.image}
+                petName={petName}
+                petType={selectedChameleon.name}
+                userId={user?.uid ?? null}
+              />
+            ) : (
+              <div>Please complete setup.</div>
+            )
+          }
         />
       </Routes>
-
-      <div style={{ position: "fixed", bottom: 20, right: 20, zIndex: 1000 }}>
-        {user ? (
-          <button
-            onClick={handleSignOut}
-            style={{
-              padding: "10px 20px",
-              backgroundColor: "#db4437",
-              color: "white",
-              border: "none",
-              borderRadius: 5,
-              cursor: "pointer",
-              fontWeight: "bold",
-            }}
-          >
-            Sign Out ({user.email})
-          </button>
-        ) : (
-          <GoogleLogin
-            onSuccess={handleGoogleLogin}
-            onError={() => console.log("Login Failed")}
-          />
-        )}
-      </div>
     </RestartProvider>
   );
 }
 
-function ChoosePage({ onSelect }: { onSelect: (ch: Chameleon) => void }) {
-  const navigate = useNavigate();
+/* ---------- Small Pages ---------- */
+
+function LoginPage({
+  onPlayAsGuest,
+  onGoogleLogin,
+}: {
+  onPlayAsGuest: () => void;
+  onGoogleLogin: (cred: CredentialResponse) => void;
+}) {
   return (
-    <BoxComponent onContinue={(chameleon) => { onSelect(chameleon); navigate("/name"); }} />
+    <LoggingIn
+      onPlayAsGuest={onPlayAsGuest}
+      onGoogleLogin={onGoogleLogin}
+    />
   );
+}
+
+function ChoosePage({
+  onSelect,
+}: {
+  onSelect: (ch: Chameleon) => void;
+}) {
+  return <BoxComponent onContinue={onSelect} />;
 }
 
 function NamePage({
@@ -369,11 +241,10 @@ function NamePage({
   chameleon: Chameleon;
   onNameSubmit: (name: string) => void;
 }) {
-  const navigate = useNavigate();
   return (
     <ChameleonNaming
       chameleon={chameleon}
-      onContinue={(name) => { onNameSubmit(name); navigate("/dashboard"); }}
+      onContinue={onNameSubmit}
     />
   );
 }
