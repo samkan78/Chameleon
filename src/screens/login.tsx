@@ -5,7 +5,7 @@ type LoggingInProps = {
   onPlayAsGuest: () => void;
   onGoogleLogin: (credentialResponse: any) => void;
 };
-
+// login screen component with google login and guest login option
 export default function LoggingIn({
   onPlayAsGuest,
   onGoogleLogin,

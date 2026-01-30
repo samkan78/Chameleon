@@ -1,12 +1,25 @@
+// React import for component definition and local state management
 import React, { useState } from "react";
+
+// React Router hook for programmatic navigation
 import { useNavigate } from "react-router-dom";
+
+// Component-scoped CSS for dashboard layout and styling
 import "./dashboard.css";
+
+// Child component that renders the main action buttons
 import FourButtons from "../components/fourbuttons";
+
+// Optional help UI component (icon-style button)
 import HowToPlay from "../components/helpButton";
+
+// Component that displays top-level stats (level, coins, food)
 import StatsDisplay from "../components/statsDisplay";
+
+// Custom context hook that exposes global restart logic
 import { useRestart } from "../components/RestartContext";
 
-// Defining the petname, pettype, and userId as props
+// Type definition enforces required props for the dashboard
 export type ChameleonDashboard = {
   image: string;
   petName: string;
@@ -14,16 +27,25 @@ export type ChameleonDashboard = {
   userId: string | null;
 };
 
+// Dashboard is a stateful React function component
 const Dashboard: React.FC<ChameleonDashboard> = ({
   petName,
   petType,
   userId,
 }) => {
+  // Router hook allows redirecting after sign-out or button clicks
   const navigate = useNavigate();
+
+  // Consume restartGame function from context without prop drilling
   const { restartGame } = useRestart();
+
+  // Local UI state tracks stats owned by this screen only
   const [stats, setStats] = useState({ level: 1, coins: 50, foodInventory: 0 });
+
+  // Boolean state controls visibility of the help modal
   const [showHelp, setShowHelp] = useState(false);
 
+  // Async handler signs user out of Firebase and redirects to home
   const handleSignOut = async () => {
     const { auth } = await import("../firebase");
     try {
@@ -35,15 +57,16 @@ const Dashboard: React.FC<ChameleonDashboard> = ({
   };
 
   return (
+    // Root container defines dashboard layout and positioning context
     <div className="dashboard-root">
-      {/* Stats Display in top right (Level, Coins, Food) */}
+      {/* Controlled component receives stats via props and re-renders on state change */}
       <StatsDisplay
         level={stats.level}
         coins={stats.coins}
         foodInventory={stats.foodInventory}
       />
 
-      {/* Login/Sign In buttons in top left */}
+      {/* Conditionally render Sign In button when no authenticated user exists */}
       {!userId && (
         <button
           onClick={() => navigate("/login")}
@@ -66,6 +89,7 @@ const Dashboard: React.FC<ChameleonDashboard> = ({
         </button>
       )}
 
+      {/* Conditionally render Sign Out button when a user is authenticated */}
       {userId && (
         <button
           onClick={handleSignOut}
@@ -88,7 +112,7 @@ const Dashboard: React.FC<ChameleonDashboard> = ({
         </button>
       )}
 
-      {/* Restart button below the sign in/out button - INCREASED SPACING */}
+      {/* Restart button triggers global state reset via context */}
       <button
         onClick={restartGame}
         style={{
@@ -109,7 +133,7 @@ const Dashboard: React.FC<ChameleonDashboard> = ({
         Restart
       </button>
 
-      {/* Help button below restart button - INCREASED SPACING */}
+      {/* Help toggle button updates local state to show modal */}
       <button
         onClick={() => setShowHelp(true)}
         style={{
@@ -135,7 +159,7 @@ const Dashboard: React.FC<ChameleonDashboard> = ({
         ?
       </button>
 
-      {/* Help Modal */}
+      {/* Conditional rendering displays modal based on showHelp state */}
       {showHelp && (
         <div
           style={{
@@ -157,6 +181,8 @@ const Dashboard: React.FC<ChameleonDashboard> = ({
             }}
           >
             <h2>How to Play</h2>
+
+            {/* Static instructional content rendered inside modal */}
             <p>1. Choose a species of chameleon.</p>
             <p>2. Type in a name for your chameleon.</p>
             <p>
@@ -165,19 +191,14 @@ const Dashboard: React.FC<ChameleonDashboard> = ({
             </p>
             <p>
               4. Use the in-game currency to purchase items from the store to
-              take care of your chameleon and maintains the energy, hunger,
-              happiness, temperature comfort, and hydration stats. Make sure the
-              chameleon is kept happy and healthy! You can buy food from shop
-              before you feed your chameleon. You need to get above a 90% on all
-              the levels for your chameleon to move on to the next level.
+              manage energy, hunger, happiness, hydration, and temperature.
             </p>
             <p>
-              5. Make your chameleon learn tricks to gain in-game currency. You
-              can also do chores to gain in-game currency. However, be mindful
-              of its energy levels and do not overexert your chameleon.
+              5. Teach tricks or complete chores to earn currency, but avoid
+              exhausting your chameleon.
             </p>
 
-            {/* Close popup */}
+            {/* Button updates state to close the modal */}
             <button
               onClick={() => setShowHelp(false)}
               style={{
@@ -196,11 +217,15 @@ const Dashboard: React.FC<ChameleonDashboard> = ({
         </div>
       )}
 
-      {/* Components to display the health and actions of the chameleon */}
+      {/* Main dashboard content area */}
       <main className="dashboard-main">
         <h2>CammyCare Dashboard</h2>
+
+        {/* Props rendered directly into UI */}
         <p>Pet Name: {petName}</p>
         <p>Pet Type: {petType}</p>
+
+        {/* Child component lifts updated stats back up via callback */}
         <FourButtons
           petType={petType}
           onStatsChange={(level, coins, foodInventory) => {

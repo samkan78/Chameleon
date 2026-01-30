@@ -1,11 +1,11 @@
-// FourButtons.tsx
+// FourButtons.tsx - Main game engine that handles all pet actions and stats
 import { useState, useContext, useEffect } from "react";
 import "./fourbuttons.css";
 import dingSound from "../assets/ding.mp3";
 import HealthBars from "./healthbars";
 import ToastContext from "./ToastService";
 
-//chameleon images
+// Import all chameleon sprites for the three species at different levels and moods
 import Level_1_PantherChameleonHappy from "../assets/chameleonImages/Panther Chameleon/Level 1/Panther Chameleon Level 1 YELLOW.png";
 import Level_1_PantherChameleonNormal from "../assets/chameleonImages/Panther Chameleon/Level 1/Panther Chameleon Level 1 GREEN.png";
 import Level_2_PantherChameleonHappy from "../assets/chameleonImages/Panther Chameleon/Level 2/Panther Chameleon YELLOW.png";
@@ -25,38 +25,35 @@ import NoseHornedChameleonYellow from "../assets/chameleons/nose-horned-yellow.p
 import NoseHornedChameleonBrown from "../assets/chameleons/nose-horned-brown.png";
 import NoseHornedChameleonOrange from "../assets/chameleons/nose-horned-green-orange.png";
 
-// ---------------------------
-// defining categories and actions
-// ---------------------------
+// TypeScript types for the five action categories
 type Category = "Health" | "Care" | "Tricks" | "Shop" | "Earn";
 
+// Action type defines what each button does (costs, stat changes, special properties)
 type Action = {
   name: string;
-  cost?: number;
+  cost?: number; // Coins needed (negative means you earn coins)
   energyValue?: number;
   hungerValue?: number;
   hydrationValue?: number;
   happinessValue?: number;
   healthValue?: number;
-  hasFood?: boolean;
-  hasLock?: boolean;
-  cooldown?: number;
-  unlockstier2tricks?: boolean;
-  tiertwotrick?: boolean;
-  isFood?: boolean;
+  hasFood?: boolean; // Requires food in inventory
+  hasLock?: boolean; // Can only be done once per day
+  cooldown?: number; // Minutes before action can be used again
+  unlockstier2tricks?: boolean; // Unlocks advanced tricks
+  tiertwotrick?: boolean; // Locked until tier 2 is unlocked
+  isFood?: boolean; // Adds to food inventory
   popuptest?: boolean;
 };
 
-// default starting stat levels
+// Starting stats - all begin at 50%
 const hydrationStartLevel = 50;
 const energyStartLevel = 50;
 const hungerStartLevel = 50;
 const happinessStartLevel = 50;
 const healthStartLevel = 50;
 
-// ---------------------------
-// subbutton actions (initial)
-// ---------------------------
+// All available actions organized by category
 const actions: Record<Category, Action[]> = {
   Health: [
     { name: "Check Eyes", healthValue: 10, happinessValue: -10, cooldown: 1 },
@@ -88,6 +85,7 @@ const actions: Record<Category, Action[]> = {
     { name: "Misting", hydrationValue: 20, cost: 4 },
     { name: "Feed", hungerValue: 15, hasFood: true },
     { name: "Nap", energyValue: 25, cooldown: 2 },
+    // Dev testing actions to quickly adjust stats
     {
       name: "testing for the dev",
       energyValue: 10,
@@ -138,9 +136,7 @@ const actions: Record<Category, Action[]> = {
   ],
 };
 
-// ---------------------------
-// main component
-// ---------------------------
+// Props passed from parent component
 type FourButtonsProps = {
   petType: string;
   userId?: string;
@@ -158,52 +154,60 @@ const FourButtons = ({
   setOpenModal,
   onStatsChange,
 }: FourButtonsProps) => {
+  // Toast context for showing popup notifications
   const { open } = useContext(ToastContext);
 
+  // Track which category is currently open (Health, Care, etc.)
   const [active, setActive] = useState<Category | null>(null);
+
+  // Core game stats tracked with useState
   const [coins, setCoins] = useState(50);
   const [hydration, setHydration] = useState(hydrationStartLevel);
   const [energy, setEnergy] = useState(energyStartLevel);
   const [hunger, setHunger] = useState(hungerStartLevel);
   const [happiness, setHappiness] = useState(happinessStartLevel);
   const [health, setHealth] = useState(healthStartLevel);
-  const [trickt2unlocked, setTrickt2unlocked] = useState(false);
-  const [foodInventory, setFoodInventory] = useState(0);
-  const [lockedActions, setLockedActions] = useState<Set<string>>(new Set());
-  const [napUntil, setNapUntil] = useState<number | null>(null);
-  const [cooldowns, setCooldowns] = useState<Record<string, number>>({});
-  const [, setTick] = useState(0);
-  const [level, setLevel] = useState(1);
-  const [unlockedEarnSpots, setUnlockedEarnSpots] = useState(5);
+
+  // Special game states
+  const [trickt2unlocked, setTrickt2unlocked] = useState(false); // Has player bought branches?
+  const [foodInventory, setFoodInventory] = useState(0); // Food items in inventory
+  const [lockedActions, setLockedActions] = useState<Set<string>>(new Set()); // Daily-locked actions
+  const [napUntil, setNapUntil] = useState<number | null>(null); // When nap ends
+  const [cooldowns, setCooldowns] = useState<Record<string, number>>({}); // Action cooldown timers
+  const [, setTick] = useState(0); // Forces re-render every second for countdown timers
+  const [level, setLevel] = useState(1); // Current evolution level (1-3)
+  const [unlockedEarnSpots, setUnlockedEarnSpots] = useState(5); // How many custom earn actions allowed
   const [actionsState, setActionsState] =
-    useState<Record<Category, Action[]>>(actions);
+    useState<Record<Category, Action[]>>(actions); // Dynamic action list
+
+  // Modal state for creating custom earn actions
   const [showAddEarnModal, setShowAddEarnModal] = useState(false);
   const [earnName, setEarnName] = useState("");
   const [earnReward, setEarnReward] = useState("");
 
-  //---------------------------
-  // Tick interval for countdowns
-  //---------------------------
+  // Timer that ticks every second to update cooldown displays
   useEffect(() => {
     const id = setInterval(() => setTick((t) => t + 1), 1000);
     return () => clearInterval(id);
   }, []);
 
+  // Level-up logic: checks if enough stats are above 90% to evolve
   useEffect(() => {
     const stats = [energy, hunger, hydration, happiness, health];
     const statsAbove90 = stats.filter((stat) => stat > 90).length;
-    const requiredStats = level + 1;
+    const requiredStats = level + 1; // Level 1 needs 2 stats, Level 2 needs 3, etc.
 
     if (statsAbove90 >= requiredStats) {
       const newLevel = level + 1;
-      // If reaching the game's win level, call parent callbacks if provided
+
+      // Win condition: reaching level 4 (after level 3)
       if (level === 3) {
         setWinLose?.("WIN");
         setOpenModal?.(true);
         if (userId && saveGameData) saveGameData(userId);
       }
 
-      // Level up and reset all stats to 50
+      // Level up: increase level, unlock more earn slots, reset all stats to 50
       setLevel(newLevel);
       setUnlockedEarnSpots(newLevel + 4);
       setEnergy(50);
@@ -212,6 +216,7 @@ const FourButtons = ({
       setHappiness(50);
       setHealth(50);
 
+      // Show celebration toast
       open(
         <div className="bg-purple-500 text-white px-4 py-3 rounded-lg shadow-lg font-bold">
           LEVEL UP! You're now Level {newLevel}!
@@ -235,13 +240,14 @@ const FourButtons = ({
     setOpenModal,
   ]);
 
-  // Sync stats to parent component
+  // Send current stats back to parent component whenever they change
   useEffect(() => {
     if (onStatsChange) {
       onStatsChange(level, coins, foodInventory);
     }
   }, [level, coins, foodInventory, onStatsChange]);
 
+  // Image mappings for Panther Chameleon at each level
   const pantherImages = {
     1: {
       happy: Level_1_PantherChameleonHappy,
@@ -257,6 +263,7 @@ const FourButtons = ({
     },
   };
 
+  // Image mappings for Jackson's Chameleon at each level
   const jacksonsImages = {
     1: {
       happy: Level_1_JacksonsChameleonHappy,
@@ -272,7 +279,7 @@ const FourButtons = ({
     },
   };
 
-  // Nose-Horned Chameleon images (doesn't have levels, just moods)
+  // Nose-Horned has all 4 moods but no level variations
   const noseHornedImages = {
     happy: NoseHornedChameleonYellow,
     normal: NoseHornedChameleonGreen,
@@ -283,25 +290,21 @@ const FourButtons = ({
   type Mood = "happy" | "normal" | "sick" | "angry";
   type ImageLevel = 1 | 2 | 3;
 
+  // Determine chameleon's current mood based on stats
   const getMood = (): Mood => {
-    // Happy when happiness is very high
     if (happiness >= 90) return "happy";
-
-    // Sick when health is low OR energy is very low
     if (health <= 30 || energy <= 30) return "sick";
-
-    // Angry when hungry or thirsty
     if (hunger <= 30 || hydration <= 30) return "angry";
-
-    // Otherwise normal
     return "normal";
   };
 
+  // Get the correct image based on species, level, and current mood
   const getImagePath = () => {
     const mood = getMood();
     const safeLevel = Math.min(level, 3) as ImageLevel;
 
     if (petType === "Panther Chameleon") {
+      // Panther only has happy/normal images, so map sick/angry to normal
       return pantherImages[safeLevel][
         mood === "sick" || mood === "angry" ? "normal" : mood
       ];
@@ -310,22 +313,22 @@ const FourButtons = ({
         mood === "sick" || mood === "angry" ? "normal" : mood
       ];
     } else if (petType === "Nose-Horned Chameleon") {
-      // Nose-Horned Chameleon uses all 4 moods
+      // Nose-Horned has all 4 mood images
       return noseHornedImages[mood];
     }
     return "";
   };
 
-  // Toggle main category
+  // Opens or closes a category when clicked
   const toggleCategory = (category: Category) =>
     setActive(active === category ? null : category);
 
-  //---------------------------
-  // handle clicking a sub-action
-  //---------------------------
+  // Main action handler - processes clicks on sub-action buttons
   const handleActionClick = (action: Action) => {
+    // Block tier 2 tricks if branches haven't been purchased
     if (action.tiertwotrick === true && !trickt2unlocked) return;
 
+    // Check if this daily action has already been used
     if (action.hasLock && lockedActions.has(action.name)) {
       open(
         <div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">
@@ -336,6 +339,7 @@ const FourButtons = ({
       return;
     }
 
+    // Block most actions during nap time (except shop and earn)
     const napActive = napUntil !== null && napUntil > Date.now();
     const isShopOrEarn =
       actionsState.Shop.some((a) => a.name === action.name) ||
@@ -351,7 +355,7 @@ const FourButtons = ({
       return;
     }
 
-    // ----- COINS -----
+    // Handle coin transactions (spending or earning)
     if (action.cost !== undefined) {
       if (coins - action.cost < 0) {
         setCoins(0);
@@ -364,11 +368,11 @@ const FourButtons = ({
         return;
       } else {
         setCoins(coins - action.cost);
-        new Audio(dingSound).play();
+        new Audio(dingSound).play(); // Play sound when coins change
       }
     }
 
-    // ----- HEALTH -----
+    // Update health stat (prevent going over 100)
     if (action.healthValue !== undefined) {
       if (health + action.healthValue > 100) {
         setHealth(100);
@@ -384,7 +388,7 @@ const FourButtons = ({
       }
     }
 
-    // ----- FOOD -----
+    // Buying food adds to inventory
     if (action.isFood) {
       if (action.cost !== undefined) {
         setCoins(coins - action.cost);
@@ -399,6 +403,7 @@ const FourButtons = ({
       }
     }
 
+    // Feeding requires food in inventory
     if (action.hungerValue !== undefined) {
       if (foodInventory >= 1) {
         setHunger(Math.min(100, hunger + action.hungerValue));
@@ -413,7 +418,7 @@ const FourButtons = ({
       }
     }
 
-    // ----- TIER 2 TRICKS -----
+    // Unlock advanced tricks permanently
     if (action.unlockstier2tricks) {
       setTrickt2unlocked(true);
       open(
@@ -424,7 +429,7 @@ const FourButtons = ({
       );
     }
 
-    // ----- NAP -----
+    // Start nap timer (blocks other actions)
     if (action.name === "Nap" && action.cooldown !== undefined) {
       setNapUntil(Date.now() + action.cooldown * 60 * 1000);
       open(
@@ -435,14 +440,14 @@ const FourButtons = ({
       );
     }
 
-    // ----- HAPPINESS -----
+    // Update happiness (keep between 0-100)
     if (action.happinessValue !== undefined) {
       setHappiness(
         Math.max(0, Math.min(100, happiness + action.happinessValue)),
       );
     }
 
-    // ----- ENERGY -----
+    // Update energy with bounds checking
     if (action.energyValue !== undefined) {
       const newEnergy = energy + action.energyValue;
       if (newEnergy > 100) {
@@ -467,14 +472,14 @@ const FourButtons = ({
       }
     }
 
-    // ----- HYDRATION -----
+    // Update hydration (keep between 0-100)
     if (action.hydrationValue !== undefined) {
       setHydration(
         Math.max(0, Math.min(100, hydration + action.hydrationValue)),
       );
     }
 
-    // ----- COOLDOWNS -----
+    // Start cooldown timer for this action
     if (action.cooldown !== undefined) {
       const cooldownMs = action.cooldown * 60 * 1000;
       setCooldowns((prev: Record<string, number>) => ({
@@ -483,27 +488,27 @@ const FourButtons = ({
       }));
     }
 
-    // ----- LOCKED ACTIONS -----
+    // Lock daily actions so they can't be repeated
     if (action.hasLock) {
       setLockedActions((prev) => new Set(prev).add(action.name));
     }
   };
 
-  // Helper function to format milliseconds to MM:SS
+  // Convert milliseconds to MM:SS format for countdown display
   const formatMs = (ms: number) => {
     const total = Math.ceil(ms / 1000);
     return `${Math.floor(total / 60)}:${(total % 60).toString().padStart(2, "0")}`;
   };
 
-  //---------------------------
-  // Render
-  //---------------------------
+  // Main render - left panel shows chameleon, right panel shows stats and buttons
   return (
     <div className="four-buttons-wrapper">
+      {/* Left side: animated chameleon image */}
       <div className="left-panel">
         <img src={getImagePath()} alt="Chameleon" className="chameleon-image" />
       </div>
 
+      {/* Right side: health bars and action buttons */}
       <div className="right-panel">
         <HealthBars
           energy={energy}
@@ -513,9 +518,10 @@ const FourButtons = ({
           hydration={hydration}
         />
 
-        {/* Main buttons */}
+        {/* Category buttons (Health, Care, Tricks, Shop, Earn) */}
         <div className="main-buttons">
           {(Object.keys(actionsState) as Category[]).map((category) => {
+            // Each category gets its own color
             const categoryColors: Record<Category, string> = {
               Health: "#FF6B6B",
               Care: "#4ECDC4",
@@ -542,10 +548,11 @@ const FourButtons = ({
           })}
         </div>
 
-        {/* Subbuttons */}
+        {/* Sub-action buttons appear when a category is selected */}
         {active && (
           <div className="sub-buttons">
             {actionsState[active].map((action) => {
+              // Calculate remaining cooldown time
               const cooldownEnd = cooldowns[action.name] ?? 0;
               const cooldownRemaining = Math.max(0, cooldownEnd - Date.now());
               const disabled = cooldownRemaining > 0;
@@ -564,7 +571,7 @@ const FourButtons = ({
               );
             })}
 
-            {/* Add Earn action UI when Earn is active */}
+            {/* Special button to create custom earn actions */}
             {active === "Earn" && (
               <div style={{ marginTop: 12 }}>
                 <button
@@ -582,7 +589,7 @@ const FourButtons = ({
           </div>
         )}
 
-        {/* Add Earn Action Modal */}
+        {/* Modal for creating custom earn actions */}
         {showAddEarnModal && (
           <div
             style={{
@@ -617,6 +624,7 @@ const FourButtons = ({
               </h2>
 
               <div style={{ marginTop: 15, textAlign: "left" }}>
+                {/* Input for action name */}
                 <label
                   style={{
                     display: "block",
@@ -648,6 +656,7 @@ const FourButtons = ({
                   onBlur={(e) => (e.target.style.borderColor = "#e0e0e0")}
                 />
 
+                {/* Input for coin reward (capped at 30) */}
                 <label
                   style={{
                     display: "block",
@@ -665,13 +674,11 @@ const FourButtons = ({
                   value={earnReward}
                   onChange={(e) => {
                     const val = e.target.value;
-                    // Only allow digits
-                    const numericVal = val.replace(/[^0-9]/g, "");
-                    // Cap at 30
+                    const numericVal = val.replace(/[^0-9]/g, ""); // Strip non-digits
                     const cappedVal =
                       numericVal === ""
                         ? ""
-                        : Math.min(Number(numericVal), 30).toString();
+                        : Math.min(Number(numericVal), 30).toString(); // Max 30 coins
                     setEarnReward(cappedVal);
                   }}
                   placeholder="e.g., 25"
@@ -698,8 +705,10 @@ const FourButtons = ({
                   justifyContent: "center",
                 }}
               >
+                {/* Add button - validates input and creates the new action */}
                 <button
                   onClick={() => {
+                    // Validation checks
                     if (!earnName.trim()) {
                       open(
                         <div className="bg-red-500 text-white px-4 py-3 rounded-lg">
@@ -728,7 +737,8 @@ const FourButtons = ({
                       );
                       return;
                     }
-                    // Cap reward at 30
+
+                    // Enforce max reward of 30 coins
                     const cappedReward = Math.min(reward, 30);
                     if (reward > 30) {
                       open(
@@ -738,6 +748,8 @@ const FourButtons = ({
                         2000,
                       );
                     }
+
+                    // Check if player has unlocked enough earn slots
                     if (actionsState.Earn.length >= unlockedEarnSpots) {
                       open(
                         <div className="bg-red-500 text-white px-4 py-3 rounded-lg">
@@ -747,15 +759,19 @@ const FourButtons = ({
                       );
                       return;
                     }
+
+                    // Create and add the new custom earn action
                     const newAction: Action = {
                       name: earnName,
-                      cost: -Math.abs(cappedReward),
+                      cost: -Math.abs(cappedReward), // Negative cost means earning
                       cooldown: 10,
                     };
                     setActionsState((prev) => ({
                       ...prev,
                       Earn: [...prev.Earn, newAction],
                     }));
+
+                    // Show success message and close modal
                     open(
                       <div className="bg-green-500 text-white px-4 py-3 rounded-lg">
                         Earn action "{earnName}" added!
@@ -794,6 +810,8 @@ const FourButtons = ({
                 >
                   Add
                 </button>
+
+                {/* Cancel button - closes modal without saving */}
                 <button
                   onClick={() => {
                     setShowAddEarnModal(false);

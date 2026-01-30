@@ -5,7 +5,7 @@ interface DashboardInformationProps {
   petName: string;
   petType: string;
 }
-
+// Component to display the dashboard heading with pet name and type
 export const DashboardInformation: React.FC<DashboardInformationProps> = ({
   petName,
   petType,

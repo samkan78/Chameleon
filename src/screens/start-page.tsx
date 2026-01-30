@@ -3,7 +3,7 @@ import "../components/start-and-login.css";
 
 export default function StartPage() {
   const navigate = useNavigate();
-
+  // start page component with title, description, and play button
   return (
     <div className="play-container">
       <div className="content-container">

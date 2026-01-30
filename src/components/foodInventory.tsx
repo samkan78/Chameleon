@@ -3,8 +3,10 @@ import React from "react";
 type foodInventoryProps = {
   foodInventory: number;
 };
-
-export const FoodInventory: React.FC<foodInventoryProps> = ({ foodInventory }) => {
+// renders food inventory button
+export const FoodInventory: React.FC<foodInventoryProps> = ({
+  foodInventory,
+}) => {
   return (
     <div style={{ position: "fixed", top: 55, left: 15, zIndex: 1000 }}>
       <button

@@ -5,7 +5,7 @@ interface StatsDisplayProps {
   coins: number;
   foodInventory: number;
 }
-
+// component to display level, coins, and food inventory in a compact layout
 const StatsDisplay: React.FC<StatsDisplayProps> = ({
   level,
   coins,

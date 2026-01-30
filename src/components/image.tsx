@@ -3,7 +3,7 @@ import React from "react";
 type displayImageProps = {
   displayImage: string;
 };
-
+// ImagBox component to display image inside a box called ImageBox
 export default function ImageBox({ displayImage }: displayImageProps) {
   return (
     <div style={boxStyle}>
@@ -11,7 +11,7 @@ export default function ImageBox({ displayImage }: displayImageProps) {
     </div>
   );
 }
-
+// styles for the image box and image
 const boxStyle: React.CSSProperties = {
   display: "flex",
   alignItems: "center",

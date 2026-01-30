@@ -7,6 +7,7 @@ type ToastItem = {
   id: string;
   component: ReactNode;
 };
+// manages toast notifications
 
 export default function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
@@ -22,7 +23,8 @@ export default function ToastProvider({ children }: { children: ReactNode }) {
   const close: ToastContextType["close"] = (id) => {
     setToasts((prevToasts) => prevToasts.filter((toast) => toast.id !== id));
   };
-
+  // provides context to children components and displays toasts
+  // why: to show notifications
   return (
     <ToastContext.Provider value={{ open, close }}>
       {children}

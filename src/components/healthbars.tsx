@@ -25,6 +25,7 @@ export default function HealthBars({
   health,
   hydration,
 }: HealthBarsProps) {
+  // array of health bars with their respective properties and setting max to the healthbars
   const healthBars: HealthBar[] = [
     { label: "Energy", current: energy, max: 100, color: "#FFD700" },
     { label: "Hunger", current: hunger, max: 100, color: "#FF8C42" },

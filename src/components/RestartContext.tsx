@@ -3,7 +3,8 @@ import { createContext, useContext } from "react";
 type RestartContextType = {
   restartGame: () => void;
 };
-
+// context to manage restart game
+// how it works: restartGame function throughout the components
 const RestartContext = createContext<RestartContextType | null>(null);
 
 export const useRestart = () => {
