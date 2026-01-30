@@ -4,6 +4,9 @@ import "./fourbuttons.css";
 import dingSound from "../assets/ding.mp3";
 import HealthBars from "./healthbars";
 import ToastContext from "./ToastService";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { db } from "../firebase";
+
 
 // Import all chameleon sprites for the three species at different levels and moods
 import Level_1_PantherChameleonHappy from "../assets/chameleonImages/Panther Chameleon/Level 1/Panther Chameleon Level 1 YELLOW.png";
@@ -45,6 +48,23 @@ type Action = {
   isFood?: boolean; // Adds to food inventory
   popuptest?: boolean;
 };
+
+// Overall game state type for saving/loading
+type GameState = {
+  coins: number;
+  hydration: number;
+  energy: number;
+  hunger: number;
+  happiness: number;
+  health: number;
+  level: number;
+  foodInventory: number;
+  trickt2unlocked: boolean;
+  unlockedEarnSpots: number;
+  actionsState: Record<Category, Action[]>;
+};
+
+
 
 // Starting stats - all begin at 50%
 const hydrationStartLevel = 50;
@@ -139,7 +159,7 @@ const actions: Record<Category, Action[]> = {
 // Props passed from parent component
 type FourButtonsProps = {
   petType: string;
-  userId?: string;
+  userId?: string | null;
   saveGameData?: (id: string) => void;
   setWinLose?: (val: string) => void;
   setOpenModal?: (open: boolean) => void;
@@ -184,6 +204,87 @@ const FourButtons = ({
   const [showAddEarnModal, setShowAddEarnModal] = useState(false);
   const [earnName, setEarnName] = useState("");
   const [earnReward, setEarnReward] = useState("");
+  
+  // Function to get the current game state for saving
+  const getGameState = (): GameState => {
+  return {
+    coins,
+    hydration,
+    energy,
+    hunger,
+    happiness,
+    health,
+    level,
+    foodInventory,
+    trickt2unlocked,
+    unlockedEarnSpots,
+    actionsState,
+  };
+  };
+
+  // Function to save game state to Firebase
+  const saveGameToFirebase = async () => {
+  if (!userId) return;
+
+  const gameState = getGameState(); // Grab all current stats
+
+  try {
+    await setDoc(
+      doc(db, "users", userId),
+      {
+        gameState,
+        updatedAt: Date.now(),
+      },
+      { merge: true }
+    );
+
+    // Toast notification
+    open(
+      <div className="bg-green-500 text-white px-4 py-3 rounded-lg">
+        Game saved to cloud ☁️
+      </div>,
+      2000
+    );
+
+    // ✅ LOG
+    console.log("✅ Game saved to Firebase:", gameState);
+  } catch (err) {
+    console.error("❌ Save failed:", err);
+  }
+};
+
+
+
+  useEffect(() => {
+  if (!userId) return;
+
+  const loadGame = async () => {
+    try {
+      const snap = await getDoc(doc(db, "users", userId));
+      if (!snap.exists()) return;
+
+      const data = snap.data().gameState as GameState | undefined;
+      if (!data) return;
+
+      setCoins(data.coins);
+      setHydration(data.hydration);
+      setEnergy(data.energy);
+      setHunger(data.hunger);
+      setHappiness(data.happiness);
+      setHealth(data.health);
+      setLevel(data.level);
+      setFoodInventory(data.foodInventory);
+      setTrickt2unlocked(data.trickt2unlocked);
+      setUnlockedEarnSpots(data.unlockedEarnSpots);
+      setActionsState(data.actionsState);
+    } catch (err) {
+      console.error("Failed to load save", err);
+    }
+  };
+
+  loadGame();
+}, [userId]);
+
 
   // Timer that ticks every second to update cooldown displays
   useEffect(() => {
@@ -242,10 +343,9 @@ const FourButtons = ({
 
   // Send current stats back to parent component whenever they change
   useEffect(() => {
-    if (onStatsChange) {
-      onStatsChange(level, coins, foodInventory);
-    }
-  }, [level, coins, foodInventory, onStatsChange]);
+  onStatsChange?.(level, coins, foodInventory);
+}, [level, coins, foodInventory]);
+
 
   // Image mappings for Panther Chameleon at each level
   const pantherImages = {
@@ -502,6 +602,9 @@ const FourButtons = ({
 
   // Main render - left panel shows chameleon, right panel shows stats and buttons
   return (
+    <>
+    
+
     <div className="four-buttons-wrapper">
       {/* Left side: animated chameleon image */}
       <div className="left-panel">
@@ -558,6 +661,7 @@ const FourButtons = ({
               const disabled = cooldownRemaining > 0;
 
               return (
+                
                 <button
                   key={action.name}
                   className="sub-btn"
@@ -696,7 +800,7 @@ const FourButtons = ({
                   onBlur={(e) => (e.target.style.borderColor = "#e0e0e0")}
                 />
               </div>
-
+              
               <div
                 style={{
                   marginTop: 24,
@@ -852,6 +956,25 @@ const FourButtons = ({
         )}
       </div>
     </div>
+    <button
+    onClick={saveGameToFirebase}
+    style={{
+    position: "fixed",
+    top: 12,
+    right: 12,
+    zIndex: 3000,
+    padding: "10px 16px",
+    backgroundColor: "#3b82f6",
+    color: "white",
+    borderRadius: 8,
+    border: "none",
+    fontWeight: 600,
+    cursor: "pointer",
+  }}
+  >
+    Save
+  </button>
+    </>
   );
 };
 

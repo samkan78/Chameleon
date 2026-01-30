@@ -231,6 +231,7 @@ const Dashboard: React.FC<ChameleonDashboard> = ({
           onStatsChange={(level, coins, foodInventory) => {
             setStats({ level, coins, foodInventory });
           }}
+          userId={userId}
         />
       </main>
     </div>
