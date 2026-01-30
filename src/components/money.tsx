@@ -1,27 +1,19 @@
-interface MoneyProps {
-  coins: number;
-}
 
-export default function Money({ coins }: MoneyProps) {
+
+import React from "react";
+
+//setting the props for monetary value will be used in fourbuttons.tsx
+type MoneyProps = {
+  coins: number;
+};
+//Show number of coins/money in top-right corner
+export const Money: React.FC<MoneyProps> = ({ coins }) => {
   return (
-    <div style={containerStyle}>
-      <button style={buttonStyle} disabled>
-        ${coins}
+    <div style={{ position: "fixed", top: 10, right: 10, zIndex: 1000 }}>
+      <button style={{ width: 50, height: 50, backgroundColor: "black", color: "white" }} disabled>
+        coins: {coins}
+
       </button>
     </div>
   );
-}
-
-const containerStyle: React.CSSProperties = {
-  position: "fixed",
-  top: "10px",
-  right: "10px",
-  zIndex: 1000,
-};
-
-const buttonStyle: React.CSSProperties = {
-  width: "50px",
-  height: "50px",
-  backgroundColor: "black",
-  color: "white",
 };

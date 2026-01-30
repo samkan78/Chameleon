@@ -56,11 +56,11 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
       setError("Name must be 20 characters or less");
       return;
     }
-
-    if (!/^[a-zA-Z0-9\s]+$/.test(trimmedName)) {
-      setError("Name can only contain letters, numbers, and spaces");
+    if (!/^[a-zA-Z\s]+$/.test(trimmedName)) {
+      setError("Name can only contain letters and spaces");
       return;
     }
+
 
     onStart(trimmedName, selectedType);
   };
