@@ -6,7 +6,7 @@ import HealthBars from "./healthbars";
 import ToastContext from "./ToastService";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../firebase";
-
+import { useRef } from "react";
 
 // Import all chameleon sprites for the three species at different levels and moods
 import Level_1_PantherChameleonHappy from "../assets/chameleonImages/Panther Chameleon/Level 1/Panther Chameleon Level 1 YELLOW.png";
@@ -253,6 +253,25 @@ const FourButtons = ({
   }
 };
 
+const saveTimeoutRef = useRef<number | null>(null);
+
+// Autosave whenever key stats change
+useEffect(() => {
+  if (!userId) return;
+
+  // Clear any existing timeout
+  if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+
+  // Set new autosave 1 second after last stat change
+  saveTimeoutRef.current = window.setTimeout(() => {
+    saveGameToFirebase();
+  }, 1000);
+
+  // Cleanup
+  return () => {
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+  };
+}, [coins, energy, hunger, hydration, happiness, health, level, foodInventory]);
 
 
   useEffect(() => {
@@ -345,7 +364,7 @@ const FourButtons = ({
   useEffect(() => {
   onStatsChange?.(level, coins, foodInventory);
 }, [level, coins, foodInventory]);
-
+  
 
   // Image mappings for Panther Chameleon at each level
   const pantherImages = {
@@ -960,11 +979,11 @@ const FourButtons = ({
     onClick={saveGameToFirebase}
     style={{
     position: "fixed",
-    top: 12,
+    top: 180,
     right: 12,
     zIndex: 3000,
     padding: "10px 16px",
-    backgroundColor: "#3b82f6",
+    backgroundColor: "#299c2b",
     color: "white",
     borderRadius: 8,
     border: "none",
