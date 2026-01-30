@@ -8,7 +8,7 @@ export default function StartPage() {
     <div className="play-container">
       <div className="content-container">
         <h1 className="title">
-          <span className="title-chameleon">Chameleon App</span>
+          <span className="title-chameleon">CammyCare</span>
         </h1>
         <p className="desc">Description</p>
         <button className="play-button" onClick={() => navigate("/login")}>

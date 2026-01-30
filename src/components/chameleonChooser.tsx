@@ -20,19 +20,21 @@ export const BoxComponent: React.FC<BoxComponentProps> = ({ onContinue }) => {
       name: "Panther Chameleon",
       description:
         "The panther chameleon is very territorial; aside from mating, it spends the majority of its life in isolation. When two males come into contact, they will change color and inflate their bodies, attempting to assert their dominance. Often these battles end at this stage, with the loser retreating, turning drab and dark colors.",
-      image: "src/assets/chameleonImages/Panther Chameleon/Level 2/Panther Chameleon GREEN.png",
+      image:
+        "src/assets/chameleonImages/Panther Chameleon/Level 2/Panther Chameleon GREEN.png",
     },
     {
       name: "Jackson's Chameleon",
       description:
         "T. jacksonii is less territorial than most species of chameleons and can often be kept in small groups.",
-      image: "src/assets/chameleonImages/Jackson's Chameleon/Level 2/Jackson's Chameleon Level 2 GREEN.png",
+      image:
+        "src/assets/chameleonImages/Jackson's Chameleon/Level 2/Jackson's Chameleon Level 2 GREEN.png",
     },
     {
       name: "Nose-Horned Chameleon",
       description:
         "The nose-horned chameleon is mostly an arboreal and solitary species. This species is primarily nocturnal, searching for food and mating at night. It uses its long tongue to catch prey, making it an efficient way.",
-      image: "src/assets/pngs_for_base/nose-horned-green.png",
+      image: "src/assets/chameleons/nose-horned-green.png",
     },
   ];
   // defines the current position in the array of chameleons (0= first, 1 = second, 2=third)
@@ -48,7 +50,7 @@ export const BoxComponent: React.FC<BoxComponentProps> = ({ onContinue }) => {
     // function to go to the previous chameleon by using the index (position)
     setcurrentChameleonPos(
       (prevPos) =>
-        (prevPos - 1 + threeChameleons.length) % threeChameleons.length
+        (prevPos - 1 + threeChameleons.length) % threeChameleons.length,
     );
   };
 

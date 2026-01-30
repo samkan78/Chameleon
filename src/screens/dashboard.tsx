@@ -200,7 +200,7 @@ const Dashboard: React.FC<ChameleonDashboard> = ({
 
       {/* Components to display the health and actions of the chameleon */}
       <main className="dashboard-main">
-        <h2>Chameleon Dashboard</h2>
+        <h2>CammyCare Dashboard</h2>
         <p>Pet Name: {petName}</p>
         <p>Pet Type: {petType}</p>
         <FourButtons
