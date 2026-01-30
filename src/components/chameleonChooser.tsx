@@ -32,7 +32,7 @@ export const BoxComponent: React.FC<BoxComponentProps> = ({ onContinue }) => {
       name: "Nose-Horned Chameleon",
       description:
         "The nose-horned chameleon is mostly an arboreal and solitary species. This species is primarily nocturnal, searching for food and mating at night. It uses its long tongue to catch prey, making it an efficient way.",
-      image: "src/assets/pngs_for_base/nose-horned-green.png",
+      image: "src/assets/chameleons/nose-horned-green.png",
     },
   ];
   // defines the current position in the array of chameleons (0= first, 1 = second, 2=third)

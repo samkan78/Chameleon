@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./dashboard.css";
 import FourButtons from "../components/fourbuttons";
-import HowToPlay from "../components/helpButton";
+
 import StatsDisplay from "../components/statsDisplay";
 import { useRestart } from "../components/RestartContext";
 

@@ -4,14 +4,12 @@ import "./fourbuttons.css";
 import dingSound from "../assets/ding.mp3";
 import HealthBars from "./healthbars";
 import ToastContext from "./ToastService";
+import { useRestart } from "./RestartContext";
 
 //chameleon images
-import Level_1_PantherChameleonHappy from "../assets/chameleonImages/Panther Chameleon/Level 1/Panther Chameleon Level 1 YELLOW.png";
-import Level_1_PantherChameleonNormal from "../assets/chameleonImages/Panther Chameleon/Level 1/Panther Chameleon Level 1 GREEN.png";
-import Level_2_PantherChameleonHappy from "../assets/chameleonImages/Panther Chameleon/Level 2/Panther Chameleon YELLOW.png";
-import Level_2_PantherChameleonNormal from "../assets/chameleonImages/Panther Chameleon/Level 2/Panther Chameleon GREEN.png";
-import Level_3_PantherChameleonHappy from "../assets/chameleonImages/Panther Chameleon/Level 3/Panther Chameleon Level 3 YELLOW.png";
-import Level_3_PantherChameleonNormal from "../assets/chameleonImages/Panther Chameleon/Level 3/Panther Chameleon Level 3 GREEN.png";
+import PantherLevel1 from "../assets/chameleons/nose-horned-green.png";
+import PantherLevel2 from "../assets/chameleons/nose-horned-green-orange.png";
+import PantherLevel3 from "../assets/chameleons/nose-horned-yellow.png";
 
 import Level_1_JacksonsChameleonHappy from "../assets/chameleonImages/Jackson's Chameleon/Level 1/Jackson's Chameleon Level 1 YELLOW.png";
 import Level_1_JacksonsChameleonNormal from "../assets/chameleonImages/Jackson's Chameleon/Level 1/Jackson's Chameleon Level 1 GREEN.png";
@@ -19,6 +17,7 @@ import Level_2_JacksonsChameleonHappy from "../assets/chameleonImages/Jackson's 
 import Level_2_JacksonsChameleonNormal from "../assets/chameleonImages/Jackson's Chameleon/Level 2/Jackson's Chameleon Level 2 GREEN.png";
 import Level_3_JacksonsChameleonHappy from "../assets/chameleonImages/Jackson's Chameleon/Level 3/Jackson's Chameleon Level 3 YELLOW.png";
 import Level_3_JacksonsChameleonNormal from "../assets/chameleonImages/Jackson's Chameleon/Level 3/Jackson's Chameleon Level 3 GREEN.png";
+
 
 // ---------------------------
 // defining categories and actions
@@ -166,7 +165,7 @@ const FourButtons = ({
   const [foodInventory, setFoodInventory] = useState(0);
   const [lockedActions, setLockedActions] = useState<Set<string>>(new Set());
   const [napUntil, setNapUntil] = useState<number | null>(null);
-  const [cooldowns, setCooldowns] = useState<Record<string, number>>({});
+  const [_cooldowns, setCooldowns] = useState<Record<string, number>>({});
   const [level, setLevel] = useState(1);
   const [unlockedEarnSpots, setUnlockedEarnSpots] = useState(5);
   const [actionsState, setActionsState] =
@@ -174,6 +173,8 @@ const FourButtons = ({
   const [showAddEarnModal, setShowAddEarnModal] = useState(false);
   const [earnName, setEarnName] = useState("");
   const [earnReward, setEarnReward] = useState("");
+  const [isGameOver, setIsGameOver] = useState(false);
+  const { restartGame } = useRestart();
 
   useEffect(() => {
     const stats = [energy, hunger, hydration, happiness, health];
@@ -228,18 +229,40 @@ const FourButtons = ({
     }
   }, [level, coins, foodInventory, onStatsChange]);
 
+  // Detect game over (any stat reaches 0%)
+  useEffect(() => {
+    if (isGameOver) return;
+    if (
+      energy <= 0 ||
+      hunger <= 0 ||
+      hydration <= 0 ||
+      happiness <= 0 ||
+      health <= 0
+    ) {
+      setIsGameOver(true);
+      setWinLose?.("LOSE");
+      setOpenModal?.(true);
+      open(
+        <div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg font-bold">
+          Game Over — one of your chameleon's stats reached 0%! Please restart to play again.
+        </div>,
+        5000,
+      );
+    }
+  }, [energy, hunger, hydration, happiness, health, isGameOver, open, setWinLose, setOpenModal]);
+
   const pantherImages = {
     1: {
-      happy: Level_1_PantherChameleonHappy,
-      normal: Level_1_PantherChameleonNormal,
+      happy: PantherLevel1,
+      normal: PantherLevel1,
     },
     2: {
-      happy: Level_2_PantherChameleonHappy,
-      normal: Level_2_PantherChameleonNormal,
+      happy: PantherLevel2,
+      normal: PantherLevel2,
     },
     3: {
-      happy: Level_3_PantherChameleonHappy,
-      normal: Level_3_PantherChameleonNormal,
+      happy: PantherLevel3,
+      normal: PantherLevel3,
     },
   };
 
@@ -257,6 +280,7 @@ const FourButtons = ({
       normal: Level_3_JacksonsChameleonNormal,
     },
   };
+  
 
   type Mood = "happy" | "normal";
   type ImageLevel = 1 | 2 | 3;
@@ -286,6 +310,16 @@ const FourButtons = ({
   // handle clicking a sub-action
   //---------------------------
   const handleActionClick = (action: Action) => {
+    if (isGameOver) {
+      open(
+        <div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">
+          Game over — restart to play again.
+        </div>,
+        3000,
+      );
+      return;
+    }
+
     if (action.tiertwotrick === true && !trickt2unlocked) return;
 
     if (action.hasLock && lockedActions.has(action.name)) {
@@ -451,6 +485,38 @@ const FourButtons = ({
     }
   };
 
+  // Local restart (reset all local game state so the player can restart in-place)
+  const localRestart = () => {
+    setActive(null);
+    setCoins(50);
+    setHydration(hydrationStartLevel);
+    setEnergy(energyStartLevel);
+    setHunger(hungerStartLevel);
+    setHappiness(happinessStartLevel);
+    setHealth(healthStartLevel);
+    setTrickt2unlocked(false);
+    setFoodInventory(0);
+    setLockedActions(new Set());
+    setNapUntil(null);
+    setCooldowns({});
+    setLevel(1);
+    setUnlockedEarnSpots(5);
+    setActionsState(actions);
+    setShowAddEarnModal(false);
+    setEarnName("");
+    setEarnReward("");
+    setIsGameOver(false);
+
+    setOpenModal?.(false);
+
+    open(
+      <div className="bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg font-bold">
+        Game restarted. Good luck!
+      </div>,
+      3000,
+    );
+  };
+
   //---------------------------
   // Render
   //---------------------------
@@ -485,11 +551,14 @@ const FourButtons = ({
                 key={category}
                 className={`main-btn ${active === category ? "active" : ""}`}
                 onClick={() => toggleCategory(category)}
+                disabled={isGameOver}
                 style={{
                   backgroundColor:
                     active === category ? categoryColors[category] : "#1a1a1a",
                   color: active === category ? "#000" : "#fff",
                   borderColor: categoryColors[category],
+                  opacity: isGameOver ? 0.5 : 1,
+                  cursor: isGameOver ? "not-allowed" : "pointer",
                 }}
               >
                 {category}
@@ -507,6 +576,8 @@ const FourButtons = ({
                   key={action.name}
                   className="sub-btn"
                   onClick={() => handleActionClick(action)}
+                  disabled={isGameOver}
+                  style={{ opacity: isGameOver ? 0.5 : 1, cursor: isGameOver ? "not-allowed" : "pointer" }}
                 >
                   {action.name}
                 </button>
@@ -519,10 +590,13 @@ const FourButtons = ({
                 <button
                   className="sub-btn"
                   onClick={() => {
+                    if (isGameOver) return;
                     setShowAddEarnModal(true);
                     setEarnName("");
                     setEarnReward("");
                   }}
+                  disabled={isGameOver}
+                  style={{ opacity: isGameOver ? 0.5 : 1, cursor: isGameOver ? "not-allowed" : "pointer" }}
                 >
                   + Add Earn Action
                 </button>
@@ -776,6 +850,55 @@ const FourButtons = ({
                   }}
                 >
                   Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isGameOver && (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100vw",
+              height: "100vh",
+              backgroundColor: "rgba(0,0,0,0.85)",
+              zIndex: 99999,
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <div
+              style={{
+                backgroundColor: "#1a1a1a",
+                padding: "2rem",
+                borderRadius: "12px",
+                border: "2px solid #333",
+                textAlign: "center",
+                color: "white",
+              }}
+            >
+              <h2 style={{ marginBottom: "1rem" }}>Game Over</h2>
+              <p style={{ marginBottom: "2rem", color: "#aaa" }}>
+                One of the stats reached 0%. Restart to play again.
+              </p>
+              <div style={{ display: "flex", gap: "15px", justifyContent: "center" }}>
+                <button
+                  onClick={restartGame}
+                  style={{
+                    padding: "10px 20px",
+                    backgroundColor: "#ff4444",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                    fontWeight: "bold",
+                  }}
+                >
+                  Restart
                 </button>
               </div>
             </div>
