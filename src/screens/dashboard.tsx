@@ -52,7 +52,7 @@ const Dashboard: React.FC<ChameleonDashboard> = ({
             top: 20,
             left: 20,
             padding: "10px 20px",
-            backgroundColor: "#6C63FF",
+            backgroundColor: "#1FCC1F",
             color: "white",
             border: "none",
             borderRadius: 8,
@@ -88,12 +88,12 @@ const Dashboard: React.FC<ChameleonDashboard> = ({
         </button>
       )}
 
-      {/* Restart button below the sign in/out button */}
+      {/* Restart button below the sign in/out button - INCREASED SPACING */}
       <button
         onClick={restartGame}
         style={{
           position: "fixed",
-          top: 70,
+          top: 85,
           left: 20,
           padding: "10px 20px",
           backgroundColor: "#FF9F43",
@@ -109,12 +109,12 @@ const Dashboard: React.FC<ChameleonDashboard> = ({
         Restart
       </button>
 
-      {/* Help button below restart button */}
+      {/* Help button below restart button - INCREASED SPACING */}
       <button
         onClick={() => setShowHelp(true)}
         style={{
           position: "fixed",
-          top: 120,
+          top: 150,
           left: 20,
           padding: "10px 16px",
           backgroundColor: "#6C5CE7",
@@ -167,11 +167,9 @@ const Dashboard: React.FC<ChameleonDashboard> = ({
               4. Use the in-game currency to purchase items from the store to
               take care of your chameleon and maintains the energy, hunger,
               happiness, temperature comfort, and hydration stats. Make sure the
-              chameleon is kept happy and healthy! All of the stat bars will
-              decrease every 2 minutes so make sure they do not decrease all the
-              way! You can buy food from shop before you feed your chameleon.
-              You need to get above a 90% on all the levels for your chameleon
-              to move on to the next level.
+              chameleon is kept happy and healthy! You can buy food from shop
+              before you feed your chameleon. You need to get above a 90% on all
+              the levels for your chameleon to move on to the next level.
             </p>
             <p>
               5. Make your chameleon learn tricks to gain in-game currency. You

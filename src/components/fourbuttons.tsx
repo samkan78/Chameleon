@@ -20,6 +20,11 @@ import Level_2_JacksonsChameleonNormal from "../assets/chameleonImages/Jackson's
 import Level_3_JacksonsChameleonHappy from "../assets/chameleonImages/Jackson's Chameleon/Level 3/Jackson's Chameleon Level 3 YELLOW.png";
 import Level_3_JacksonsChameleonNormal from "../assets/chameleonImages/Jackson's Chameleon/Level 3/Jackson's Chameleon Level 3 GREEN.png";
 
+import NoseHornedChameleonGreen from "../assets/chameleons/nose-horned-green.png";
+import NoseHornedChameleonYellow from "../assets/chameleons/nose-horned-yellow.png";
+import NoseHornedChameleonBrown from "../assets/chameleons/nose-horned-brown.png";
+import NoseHornedChameleonOrange from "../assets/chameleons/nose-horned-green-orange.png";
+
 // ---------------------------
 // defining categories and actions
 // ---------------------------
@@ -132,7 +137,7 @@ const actions: Record<Category, Action[]> = {
     { name: "Do laundry", cost: -45, cooldown: 20 },
   ],
 };
-// (duplicate import block removed - original image imports are at file top)
+
 // ---------------------------
 // main component
 // ---------------------------
@@ -167,6 +172,7 @@ const FourButtons = ({
   const [lockedActions, setLockedActions] = useState<Set<string>>(new Set());
   const [napUntil, setNapUntil] = useState<number | null>(null);
   const [cooldowns, setCooldowns] = useState<Record<string, number>>({});
+  const [, setTick] = useState(0);
   const [level, setLevel] = useState(1);
   const [unlockedEarnSpots, setUnlockedEarnSpots] = useState(5);
   const [actionsState, setActionsState] =
@@ -174,6 +180,14 @@ const FourButtons = ({
   const [showAddEarnModal, setShowAddEarnModal] = useState(false);
   const [earnName, setEarnName] = useState("");
   const [earnReward, setEarnReward] = useState("");
+
+  //---------------------------
+  // Tick interval for countdowns
+  //---------------------------
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 1000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     const stats = [energy, hunger, hydration, happiness, health];
@@ -258,11 +272,28 @@ const FourButtons = ({
     },
   };
 
-  type Mood = "happy" | "normal";
+  // Nose-Horned Chameleon images (doesn't have levels, just moods)
+  const noseHornedImages = {
+    happy: NoseHornedChameleonYellow,
+    normal: NoseHornedChameleonGreen,
+    sick: NoseHornedChameleonBrown,
+    angry: NoseHornedChameleonOrange,
+  };
+
+  type Mood = "happy" | "normal" | "sick" | "angry";
   type ImageLevel = 1 | 2 | 3;
 
   const getMood = (): Mood => {
+    // Happy when happiness is very high
     if (happiness >= 90) return "happy";
+
+    // Sick when health is low OR energy is very low
+    if (health <= 30 || energy <= 30) return "sick";
+
+    // Angry when hungry or thirsty
+    if (hunger <= 30 || hydration <= 30) return "angry";
+
+    // Otherwise normal
     return "normal";
   };
 
@@ -271,9 +302,16 @@ const FourButtons = ({
     const safeLevel = Math.min(level, 3) as ImageLevel;
 
     if (petType === "Panther Chameleon") {
-      return pantherImages[safeLevel][mood];
+      return pantherImages[safeLevel][
+        mood === "sick" || mood === "angry" ? "normal" : mood
+      ];
     } else if (petType === "Jackson's Chameleon") {
-      return jacksonsImages[safeLevel][mood];
+      return jacksonsImages[safeLevel][
+        mood === "sick" || mood === "angry" ? "normal" : mood
+      ];
+    } else if (petType === "Nose-Horned Chameleon") {
+      // Nose-Horned Chameleon uses all 4 moods
+      return noseHornedImages[mood];
     }
     return "";
   };
@@ -451,6 +489,12 @@ const FourButtons = ({
     }
   };
 
+  // Helper function to format milliseconds to MM:SS
+  const formatMs = (ms: number) => {
+    const total = Math.ceil(ms / 1000);
+    return `${Math.floor(total / 60)}:${(total % 60).toString().padStart(2, "0")}`;
+  };
+
   //---------------------------
   // Render
   //---------------------------
@@ -502,13 +546,20 @@ const FourButtons = ({
         {active && (
           <div className="sub-buttons">
             {actionsState[active].map((action) => {
+              const cooldownEnd = cooldowns[action.name] ?? 0;
+              const cooldownRemaining = Math.max(0, cooldownEnd - Date.now());
+              const disabled = cooldownRemaining > 0;
+
               return (
                 <button
                   key={action.name}
                   className="sub-btn"
+                  disabled={disabled}
                   onClick={() => handleActionClick(action)}
                 >
                   {action.name}
+                  {action.cost !== undefined && ` — $${Math.abs(action.cost)}`}
+                  {cooldownRemaining > 0 && ` — ${formatMs(cooldownRemaining)}`}
                 </button>
               );
             })}

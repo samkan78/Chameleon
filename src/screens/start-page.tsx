@@ -10,7 +10,9 @@ export default function StartPage() {
         <h1 className="title">
           <span className="title-chameleon">CammyCare</span>
         </h1>
-        <p className="desc">Description</p>
+        <p className="desc">
+          Care for your virtual chameleon and watch it come to life!
+        </p>
         <button className="play-button" onClick={() => navigate("/login")}>
           <svg className="play-icon" viewBox="0 0 24 24" fill="currentColor">
             <path d="M8 5v14l11-7z" />

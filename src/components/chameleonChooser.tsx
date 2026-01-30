@@ -57,40 +57,42 @@ export const BoxComponent: React.FC<BoxComponentProps> = ({ onContinue }) => {
   // displays the chameleon based on the index
   const currentChameleon = threeChameleons[currentChameleonPos];
   return (
-    <div className="box-container">
-      {/*the box that all of the following goes in */}
-      <h1>Choose your Chameleon</h1> {/*title for the component */}
-      {/*arows to navigate the chameleons left and right */}
-      <div className="arrow-and-chameleons">
-        <button className="left-arrow-btn" onClick={() => goLeft()}>
-          <img
-            src="src/assets/left-arrow.png"
-            alt="left arrow"
-            className="arrow"
-          />
-        </button>
-        {/* shows current chameleon image */}
-        <img src={currentChameleon.image} alt={currentChameleon.name} />
-        <button className="right-arrow-btn" onClick={() => goRight()}>
-          <img
-            src="src/assets/right-arrow.png"
-            alt="right arrow"
-            className="arrow"
-          />
+    <div className="app-container">
+      <div className="box-container">
+        {/*the box that all of the following goes in */}
+        <h1>Choose your Chameleon</h1> {/*title for the component */}
+        {/*arows to navigate the chameleons left and right */}
+        <div className="arrow-and-chameleons">
+          <button className="left-arrow-btn" onClick={() => goLeft()}>
+            <img
+              src="src/assets/left-arrow.png"
+              alt="left arrow"
+              className="arrow"
+            />
+          </button>
+          {/* shows current chameleon image */}
+          <img src={currentChameleon.image} alt={currentChameleon.name} />
+          <button className="right-arrow-btn" onClick={() => goRight()}>
+            <img
+              src="src/assets/right-arrow.png"
+              alt="right arrow"
+              className="arrow"
+            />
+          </button>
+        </div>
+        {/* displays current chameleon name and description as text content */}
+        <h2>{currentChameleon.name}</h2>
+        <p>{currentChameleon.description}</p>
+        {/* calls the parent callback*/}
+        <button
+          className="continue-btn"
+          onClick={() => {
+            if (onContinue) onContinue(currentChameleon);
+          }}
+        >
+          Continue
         </button>
       </div>
-      {/* displays current chameleon name and description as text content */}
-      <h2>{currentChameleon.name}</h2>
-      <p>{currentChameleon.description}</p>
-      {/* calls the parent callback*/}
-      <button
-        className="continue-btn"
-        onClick={() => {
-          if (onContinue) onContinue(currentChameleon);
-        }}
-      >
-        Continue
-      </button>
     </div>
   );
 };

@@ -41,7 +41,7 @@ export const ChameleonNaming: React.FC<ChameleonNamingProps> = ({
         <div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">
           Please enter a name for your chameleon!
         </div>,
-        3000 // duration in ms
+        3000, // duration in ms
       );
       return;
     }
@@ -50,7 +50,7 @@ export const ChameleonNaming: React.FC<ChameleonNamingProps> = ({
       <div className="bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg">
         Your chameleon is now named <strong>{name.trim()}</strong>!
       </div>,
-      3000
+      3000,
     );
     // small delay
     setTimeout(() => {
@@ -59,23 +59,25 @@ export const ChameleonNaming: React.FC<ChameleonNamingProps> = ({
   };
 
   return (
-    <div className="box-container">
-      {/*shows special name */}
-      <h1>{chameleon.name}</h1>
-      {/* shows current chameleon image */}
-      <img src={chameleon.image} alt={chameleon.name} />
-      <h2> Enter a name for your chameleon!</h2>
-      <input
-        className="name-input"
-        type="text"
-        value={name}
-        onChange={handleInputChange}
-        placeholder="Enter a name for your chameleon"
-      />
-      {/* primary action button */}
-      <button className="continue-btn" onClick={handleContinue}>
-        Continue
-      </button>
+    <div className="app-container">
+      <div className="box-container">
+        {/*shows special name */}
+        <h1>{chameleon.name}</h1>
+        {/* shows current chameleon image */}
+        <img src={chameleon.image} alt={chameleon.name} />
+        <h2> Enter a name for your chameleon!</h2>
+        <input
+          className="name-input"
+          type="text"
+          value={name}
+          onChange={handleInputChange}
+          placeholder="Enter a name for your chameleon"
+        />
+        {/* primary action button */}
+        <button className="continue-btn" onClick={handleContinue}>
+          Continue
+        </button>
+      </div>
     </div>
   );
 };
