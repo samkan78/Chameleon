@@ -64,8 +64,6 @@ type GameState = {
   actionsState: Record<Category, Action[]>;
 };
 
-
-
 // Starting stats - all begin at 50%
 const hydrationStartLevel = 50;
 const energyStartLevel = 50;
@@ -204,106 +202,113 @@ const FourButtons = ({
   const [showAddEarnModal, setShowAddEarnModal] = useState(false);
   const [earnName, setEarnName] = useState("");
   const [earnReward, setEarnReward] = useState("");
-  
+
   // Function to get the current game state for saving
   const getGameState = (): GameState => {
-  return {
-    coins,
-    hydration,
-    energy,
-    hunger,
-    happiness,
-    health,
-    level,
-    foodInventory,
-    trickt2unlocked,
-    unlockedEarnSpots,
-    actionsState,
-  };
+    return {
+      coins,
+      hydration,
+      energy,
+      hunger,
+      happiness,
+      health,
+      level,
+      foodInventory,
+      trickt2unlocked,
+      unlockedEarnSpots,
+      actionsState,
+    };
   };
 
   // Function to save game state to Firebase
   const saveGameToFirebase = async () => {
-  if (!userId) return;
+    if (!userId) return;
 
-  const gameState = getGameState(); // Grab all current stats
+    const gameState = getGameState(); // Grab all current stats
 
-  try {
-    await setDoc(
-      doc(db, "users", userId),
-      {
-        gameState,
-        updatedAt: Date.now(),
-      },
-      { merge: true }
-    );
-
-    // Toast notification
-    open(
-      <div className="bg-green-500 text-white px-4 py-3 rounded-lg">
-        Game saved to cloud ☁️
-      </div>,
-      2000
-    );
-
-    // ✅ LOG
-    console.log("✅ Game saved to Firebase:", gameState);
-  } catch (err) {
-    console.error("❌ Save failed:", err);
-  }
-};
-
-const saveTimeoutRef = useRef<number | null>(null);
-
-// Autosave whenever key stats change
-useEffect(() => {
-  if (!userId) return;
-
-  // Clear any existing timeout
-  if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-
-  // Set new autosave 1 second after last stat change
-  saveTimeoutRef.current = window.setTimeout(() => {
-    saveGameToFirebase();
-  }, 1000);
-
-  // Cleanup
-  return () => {
-    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-  };
-}, [coins, energy, hunger, hydration, happiness, health, level, foodInventory]);
-
-
-  useEffect(() => {
-  if (!userId) return;
-
-  const loadGame = async () => {
     try {
-      const snap = await getDoc(doc(db, "users", userId));
-      if (!snap.exists()) return;
+      await setDoc(
+        doc(db, "users", userId),
+        {
+          gameState,
+          updatedAt: Date.now(),
+        },
+        { merge: true },
+      );
 
-      const data = snap.data().gameState as GameState | undefined;
-      if (!data) return;
+      // Toast notification
+      open(
+        <div className="bg-green-500 text-white px-4 py-3 rounded-lg">
+          Game saved to cloud ☁️
+        </div>,
+        2000,
+      );
 
-      setCoins(data.coins);
-      setHydration(data.hydration);
-      setEnergy(data.energy);
-      setHunger(data.hunger);
-      setHappiness(data.happiness);
-      setHealth(data.health);
-      setLevel(data.level);
-      setFoodInventory(data.foodInventory);
-      setTrickt2unlocked(data.trickt2unlocked);
-      setUnlockedEarnSpots(data.unlockedEarnSpots);
-      setActionsState(data.actionsState);
+      // ✅ LOG
+      console.log("✅ Game saved to Firebase:", gameState);
     } catch (err) {
-      console.error("Failed to load save", err);
+      console.error("❌ Save failed:", err);
     }
   };
 
-  loadGame();
-}, [userId]);
+  const saveTimeoutRef = useRef<number | null>(null);
 
+  // Autosave whenever key stats change
+  useEffect(() => {
+    if (!userId) return;
+
+    // Clear any existing timeout
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+
+    // Set new autosave 1 second after last stat change
+    saveTimeoutRef.current = window.setTimeout(() => {
+      saveGameToFirebase();
+    }, 1000);
+
+    // Cleanup
+    return () => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    };
+  }, [
+    coins,
+    energy,
+    hunger,
+    hydration,
+    happiness,
+    health,
+    level,
+    foodInventory,
+  ]);
+
+  useEffect(() => {
+    if (!userId) return;
+
+    const loadGame = async () => {
+      try {
+        const snap = await getDoc(doc(db, "users", userId));
+        if (!snap.exists()) return;
+
+        const data = snap.data().gameState as GameState | undefined;
+        if (!data) return;
+
+        setCoins(data.coins);
+        setHydration(data.hydration);
+        setEnergy(data.energy);
+        setHunger(data.hunger);
+        setHappiness(data.happiness);
+        setHealth(data.health);
+        setLevel(data.level);
+        setFoodInventory(data.foodInventory);
+        setTrickt2unlocked(data.trickt2unlocked);
+        setUnlockedEarnSpots(data.unlockedEarnSpots);
+        setActionsState(data.actionsState);
+      } catch (err) {
+        console.error("Failed to load save", err);
+      }
+    };
+
+    loadGame();
+  }, [userId]);
 
   // Timer that ticks every second to update cooldown displays
   useEffect(() => {
@@ -362,19 +367,21 @@ useEffect(() => {
 
   // Send current stats back to parent component whenever they change
   useEffect(() => {
-  onStatsChange?.(level, coins, foodInventory);
-}, [level, coins, foodInventory]);
-  
+    onStatsChange?.(level, coins, foodInventory);
+  }, [level, coins, foodInventory]);
 
   // Image mappings for Panther Chameleon at each level
   const pantherImages = {
     1: {
       happy: Level_1_PantherChameleonHappy,
       normal: Level_1_PantherChameleonNormal,
+      sick: Level_1_PantherChameleonHappy,
+      angry: Level_1_PantherChameleonHappy,
     },
     2: {
       happy: Level_2_PantherChameleonHappy,
       normal: Level_2_PantherChameleonNormal,
+      sick: Level_2_PantherChameleonHappy,
     },
     3: {
       happy: Level_3_PantherChameleonHappy,
@@ -622,377 +629,382 @@ useEffect(() => {
   // Main render - left panel shows chameleon, right panel shows stats and buttons
   return (
     <>
-    
-
-    <div className="four-buttons-wrapper">
-      {/* Left side: animated chameleon image */}
-      <div className="left-panel">
-        <img src={getImagePath()} alt="Chameleon" className="chameleon-image" />
-      </div>
-
-      {/* Right side: health bars and action buttons */}
-      <div className="right-panel">
-        <HealthBars
-          energy={energy}
-          hunger={hunger}
-          happiness={happiness}
-          health={health}
-          hydration={hydration}
-        />
-
-        {/* Category buttons (Health, Care, Tricks, Shop, Earn) */}
-        <div className="main-buttons">
-          {(Object.keys(actionsState) as Category[]).map((category) => {
-            // Each category gets its own color
-            const categoryColors: Record<Category, string> = {
-              Health: "#FF6B6B",
-              Care: "#4ECDC4",
-              Tricks: "#FFE66D",
-              Shop: "#95E1D3",
-              Earn: "#C7CEEA",
-            };
-
-            return (
-              <button
-                key={category}
-                className={`main-btn ${active === category ? "active" : ""}`}
-                onClick={() => toggleCategory(category)}
-                style={{
-                  backgroundColor:
-                    active === category ? categoryColors[category] : "#1a1a1a",
-                  color: active === category ? "#000" : "#fff",
-                  borderColor: categoryColors[category],
-                }}
-              >
-                {category}
-              </button>
-            );
-          })}
+      <div className="four-buttons-wrapper">
+        {/* Left side: animated chameleon image */}
+        <div className="left-panel">
+          <img
+            src={getImagePath()}
+            alt="Chameleon"
+            className="chameleon-image"
+          />
         </div>
 
-        {/* Sub-action buttons appear when a category is selected */}
-        {active && (
-          <div className="sub-buttons">
-            {actionsState[active].map((action) => {
-              // Calculate remaining cooldown time
-              const cooldownEnd = cooldowns[action.name] ?? 0;
-              const cooldownRemaining = Math.max(0, cooldownEnd - Date.now());
-              const disabled = cooldownRemaining > 0;
+        {/* Right side: health bars and action buttons */}
+        <div className="right-panel">
+          <HealthBars
+            energy={energy}
+            hunger={hunger}
+            happiness={happiness}
+            health={health}
+            hydration={hydration}
+          />
+
+          {/* Category buttons (Health, Care, Tricks, Shop, Earn) */}
+          <div className="main-buttons">
+            {(Object.keys(actionsState) as Category[]).map((category) => {
+              // Each category gets its own color
+              const categoryColors: Record<Category, string> = {
+                Health: "#FF6B6B",
+                Care: "#4ECDC4",
+                Tricks: "#FFE66D",
+                Shop: "#95E1D3",
+                Earn: "#C7CEEA",
+              };
 
               return (
-                
                 <button
-                  key={action.name}
-                  className="sub-btn"
-                  disabled={disabled}
-                  onClick={() => handleActionClick(action)}
+                  key={category}
+                  className={`main-btn ${active === category ? "active" : ""}`}
+                  onClick={() => toggleCategory(category)}
+                  style={{
+                    backgroundColor:
+                      active === category
+                        ? categoryColors[category]
+                        : "#1a1a1a",
+                    color: active === category ? "#000" : "#fff",
+                    borderColor: categoryColors[category],
+                  }}
                 >
-                  {action.name}
-                  {action.cost !== undefined && ` — $${Math.abs(action.cost)}`}
-                  {cooldownRemaining > 0 && ` — ${formatMs(cooldownRemaining)}`}
+                  {category}
                 </button>
               );
             })}
-
-            {/* Special button to create custom earn actions */}
-            {active === "Earn" && (
-              <div style={{ marginTop: 12 }}>
-                <button
-                  className="sub-btn"
-                  onClick={() => {
-                    setShowAddEarnModal(true);
-                    setEarnName("");
-                    setEarnReward("");
-                  }}
-                >
-                  + Add Earn Action
-                </button>
-              </div>
-            )}
           </div>
-        )}
 
-        {/* Modal for creating custom earn actions */}
-        {showAddEarnModal && (
-          <div
-            style={{
-              position: "fixed",
-              inset: 0,
-              background: "rgba(0,0,0,0.6)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              zIndex: 2000,
-            }}
-          >
+          {/* Sub-action buttons appear when a category is selected */}
+          {active && (
+            <div className="sub-buttons">
+              {actionsState[active].map((action) => {
+                // Calculate remaining cooldown time
+                const cooldownEnd = cooldowns[action.name] ?? 0;
+                const cooldownRemaining = Math.max(0, cooldownEnd - Date.now());
+                const disabled = cooldownRemaining > 0;
+
+                return (
+                  <button
+                    key={action.name}
+                    className="sub-btn"
+                    disabled={disabled}
+                    onClick={() => handleActionClick(action)}
+                  >
+                    {action.name}
+                    {action.cost !== undefined &&
+                      ` — $${Math.abs(action.cost)}`}
+                    {cooldownRemaining > 0 &&
+                      ` — ${formatMs(cooldownRemaining)}`}
+                  </button>
+                );
+              })}
+
+              {/* Special button to create custom earn actions */}
+              {active === "Earn" && (
+                <div style={{ marginTop: 12 }}>
+                  <button
+                    className="sub-btn"
+                    onClick={() => {
+                      setShowAddEarnModal(true);
+                      setEarnName("");
+                      setEarnReward("");
+                    }}
+                  >
+                    + Add Earn Action
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Modal for creating custom earn actions */}
+          {showAddEarnModal && (
             <div
               style={{
-                background: "white",
-                padding: 28,
-                borderRadius: 12,
-                width: 360,
-                textAlign: "center",
-                boxShadow: "0 10px 40px rgba(0, 0, 0, 0.2)",
+                position: "fixed",
+                inset: 0,
+                background: "rgba(0,0,0,0.6)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 2000,
               }}
             >
-              <h2
-                style={{
-                  fontSize: "1.5rem",
-                  fontWeight: "700",
-                  color: "#1a1a1a",
-                  margin: "0 0 20px 0",
-                }}
-              >
-                Add Earn Action
-              </h2>
-
-              <div style={{ marginTop: 15, textAlign: "left" }}>
-                {/* Input for action name */}
-                <label
-                  style={{
-                    display: "block",
-                    marginBottom: 8,
-                    fontWeight: "600",
-                    color: "#222",
-                    fontSize: "0.95rem",
-                  }}
-                >
-                  Action Name
-                </label>
-                <input
-                  type="text"
-                  value={earnName}
-                  onChange={(e) => setEarnName(e.target.value)}
-                  placeholder="e.g., Wash Dishes"
-                  style={{
-                    width: "100%",
-                    padding: "10px 12px",
-                    border: "2px solid #e0e0e0",
-                    borderRadius: "6px",
-                    boxSizing: "border-box",
-                    marginBottom: 16,
-                    fontSize: "1rem",
-                    fontFamily: "inherit",
-                    transition: "border-color 0.2s ease",
-                  }}
-                  onFocus={(e) => (e.target.style.borderColor = "#333")}
-                  onBlur={(e) => (e.target.style.borderColor = "#e0e0e0")}
-                />
-
-                {/* Input for coin reward (capped at 30) */}
-                <label
-                  style={{
-                    display: "block",
-                    marginBottom: 8,
-                    fontWeight: "600",
-                    color: "#222",
-                    fontSize: "0.95rem",
-                  }}
-                >
-                  Reward ($)
-                </label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={earnReward}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    const numericVal = val.replace(/[^0-9]/g, ""); // Strip non-digits
-                    const cappedVal =
-                      numericVal === ""
-                        ? ""
-                        : Math.min(Number(numericVal), 30).toString(); // Max 30 coins
-                    setEarnReward(cappedVal);
-                  }}
-                  placeholder="e.g., 25"
-                  style={{
-                    width: "100%",
-                    padding: "10px 12px",
-                    border: "2px solid #e0e0e0",
-                    borderRadius: "6px",
-                    boxSizing: "border-box",
-                    fontSize: "1rem",
-                    fontFamily: "inherit",
-                    transition: "border-color 0.2s ease",
-                  }}
-                  onFocus={(e) => (e.target.style.borderColor = "#333")}
-                  onBlur={(e) => (e.target.style.borderColor = "#e0e0e0")}
-                />
-              </div>
-              
               <div
                 style={{
-                  marginTop: 24,
-                  display: "flex",
-                  gap: 12,
-                  justifyContent: "center",
+                  background: "white",
+                  padding: 28,
+                  borderRadius: 12,
+                  width: 360,
+                  textAlign: "center",
+                  boxShadow: "0 10px 40px rgba(0, 0, 0, 0.2)",
                 }}
               >
-                {/* Add button - validates input and creates the new action */}
-                <button
-                  onClick={() => {
-                    // Validation checks
-                    if (!earnName.trim()) {
-                      open(
-                        <div className="bg-red-500 text-white px-4 py-3 rounded-lg">
-                          Action name cannot be empty
-                        </div>,
-                        3000,
-                      );
-                      return;
-                    }
-                    if (!earnReward.trim()) {
-                      open(
-                        <div className="bg-red-500 text-white px-4 py-3 rounded-lg">
-                          Reward cannot be empty
-                        </div>,
-                        3000,
-                      );
-                      return;
-                    }
-                    const reward = Number(earnReward);
-                    if (Number.isNaN(reward) || reward <= 0) {
-                      open(
-                        <div className="bg-red-500 text-white px-4 py-3 rounded-lg">
-                          Invalid reward number (must be positive)
-                        </div>,
-                        3000,
-                      );
-                      return;
-                    }
-
-                    // Enforce max reward of 30 coins
-                    const cappedReward = Math.min(reward, 30);
-                    if (reward > 30) {
-                      open(
-                        <div className="bg-yellow-500 text-white px-4 py-3 rounded-lg">
-                          Reward capped at 30
-                        </div>,
-                        2000,
-                      );
-                    }
-
-                    // Check if player has unlocked enough earn slots
-                    if (actionsState.Earn.length >= unlockedEarnSpots) {
-                      open(
-                        <div className="bg-red-500 text-white px-4 py-3 rounded-lg">
-                          No unlocked Earn slots
-                        </div>,
-                        3000,
-                      );
-                      return;
-                    }
-
-                    // Create and add the new custom earn action
-                    const newAction: Action = {
-                      name: earnName,
-                      cost: -Math.abs(cappedReward), // Negative cost means earning
-                      cooldown: 10,
-                    };
-                    setActionsState((prev) => ({
-                      ...prev,
-                      Earn: [...prev.Earn, newAction],
-                    }));
-
-                    // Show success message and close modal
-                    open(
-                      <div className="bg-green-500 text-white px-4 py-3 rounded-lg">
-                        Earn action "{earnName}" added!
-                      </div>,
-                      3000,
-                    );
-                    setShowAddEarnModal(false);
-                    setEarnName("");
-                    setEarnReward("");
-                  }}
+                <h2
                   style={{
-                    padding: "10px 20px",
-                    backgroundColor: "#28a745",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "6px",
-                    cursor: "pointer",
-                    fontWeight: 600,
-                    fontSize: "0.95rem",
-                    transition: "all 0.2s ease",
-                    flex: 1,
-                    boxShadow: "0 2px 6px rgba(0, 0, 0, 0.1)",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#218838";
-                    e.currentTarget.style.boxShadow =
-                      "0 4px 10px rgba(0, 0, 0, 0.15)";
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "#28a745";
-                    e.currentTarget.style.boxShadow =
-                      "0 2px 6px rgba(0, 0, 0, 0.1)";
-                    e.currentTarget.style.transform = "translateY(0)";
+                    fontSize: "1.5rem",
+                    fontWeight: "700",
+                    color: "#1a1a1a",
+                    margin: "0 0 20px 0",
                   }}
                 >
-                  Add
-                </button>
+                  Add Earn Action
+                </h2>
 
-                {/* Cancel button - closes modal without saving */}
-                <button
-                  onClick={() => {
-                    setShowAddEarnModal(false);
-                    setEarnName("");
-                    setEarnReward("");
-                  }}
+                <div style={{ marginTop: 15, textAlign: "left" }}>
+                  {/* Input for action name */}
+                  <label
+                    style={{
+                      display: "block",
+                      marginBottom: 8,
+                      fontWeight: "600",
+                      color: "#222",
+                      fontSize: "0.95rem",
+                    }}
+                  >
+                    Action Name
+                  </label>
+                  <input
+                    type="text"
+                    value={earnName}
+                    onChange={(e) => setEarnName(e.target.value)}
+                    placeholder="e.g., Wash Dishes"
+                    style={{
+                      width: "100%",
+                      padding: "10px 12px",
+                      border: "2px solid #e0e0e0",
+                      borderRadius: "6px",
+                      boxSizing: "border-box",
+                      marginBottom: 16,
+                      fontSize: "1rem",
+                      fontFamily: "inherit",
+                      transition: "border-color 0.2s ease",
+                    }}
+                    onFocus={(e) => (e.target.style.borderColor = "#333")}
+                    onBlur={(e) => (e.target.style.borderColor = "#e0e0e0")}
+                  />
+
+                  {/* Input for coin reward (capped at 30) */}
+                  <label
+                    style={{
+                      display: "block",
+                      marginBottom: 8,
+                      fontWeight: "600",
+                      color: "#222",
+                      fontSize: "0.95rem",
+                    }}
+                  >
+                    Reward ($)
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={earnReward}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      const numericVal = val.replace(/[^0-9]/g, ""); // Strip non-digits
+                      const cappedVal =
+                        numericVal === ""
+                          ? ""
+                          : Math.min(Number(numericVal), 30).toString(); // Max 30 coins
+                      setEarnReward(cappedVal);
+                    }}
+                    placeholder="e.g., 25"
+                    style={{
+                      width: "100%",
+                      padding: "10px 12px",
+                      border: "2px solid #e0e0e0",
+                      borderRadius: "6px",
+                      boxSizing: "border-box",
+                      fontSize: "1rem",
+                      fontFamily: "inherit",
+                      transition: "border-color 0.2s ease",
+                    }}
+                    onFocus={(e) => (e.target.style.borderColor = "#333")}
+                    onBlur={(e) => (e.target.style.borderColor = "#e0e0e0")}
+                  />
+                </div>
+
+                <div
                   style={{
-                    padding: "10px 20px",
-                    backgroundColor: "#f0f0f0",
-                    color: "#333",
-                    border: "2px solid #ddd",
-                    borderRadius: "6px",
-                    cursor: "pointer",
-                    fontWeight: 600,
-                    fontSize: "0.95rem",
-                    transition: "all 0.2s ease",
-                    flex: 1,
-                    boxShadow: "0 2px 6px rgba(0, 0, 0, 0.05)",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#e0e0e0";
-                    e.currentTarget.style.boxShadow =
-                      "0 4px 10px rgba(0, 0, 0, 0.1)";
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "#f0f0f0";
-                    e.currentTarget.style.boxShadow =
-                      "0 2px 6px rgba(0, 0, 0, 0.05)";
-                    e.currentTarget.style.transform = "translateY(0)";
+                    marginTop: 24,
+                    display: "flex",
+                    gap: 12,
+                    justifyContent: "center",
                   }}
                 >
-                  Cancel
-                </button>
+                  {/* Add button - validates input and creates the new action */}
+                  <button
+                    onClick={() => {
+                      // Validation checks
+                      if (!earnName.trim()) {
+                        open(
+                          <div className="bg-red-500 text-white px-4 py-3 rounded-lg">
+                            Action name cannot be empty
+                          </div>,
+                          3000,
+                        );
+                        return;
+                      }
+                      if (!earnReward.trim()) {
+                        open(
+                          <div className="bg-red-500 text-white px-4 py-3 rounded-lg">
+                            Reward cannot be empty
+                          </div>,
+                          3000,
+                        );
+                        return;
+                      }
+                      const reward = Number(earnReward);
+                      if (Number.isNaN(reward) || reward <= 0) {
+                        open(
+                          <div className="bg-red-500 text-white px-4 py-3 rounded-lg">
+                            Invalid reward number (must be positive)
+                          </div>,
+                          3000,
+                        );
+                        return;
+                      }
+
+                      // Enforce max reward of 30 coins
+                      const cappedReward = Math.min(reward, 30);
+                      if (reward > 30) {
+                        open(
+                          <div className="bg-yellow-500 text-white px-4 py-3 rounded-lg">
+                            Reward capped at 30
+                          </div>,
+                          2000,
+                        );
+                      }
+
+                      // Check if player has unlocked enough earn slots
+                      if (actionsState.Earn.length >= unlockedEarnSpots) {
+                        open(
+                          <div className="bg-red-500 text-white px-4 py-3 rounded-lg">
+                            No unlocked Earn slots
+                          </div>,
+                          3000,
+                        );
+                        return;
+                      }
+
+                      // Create and add the new custom earn action
+                      const newAction: Action = {
+                        name: earnName,
+                        cost: -Math.abs(cappedReward), // Negative cost means earning
+                        cooldown: 10,
+                      };
+                      setActionsState((prev) => ({
+                        ...prev,
+                        Earn: [...prev.Earn, newAction],
+                      }));
+
+                      // Show success message and close modal
+                      open(
+                        <div className="bg-green-500 text-white px-4 py-3 rounded-lg">
+                          Earn action "{earnName}" added!
+                        </div>,
+                        3000,
+                      );
+                      setShowAddEarnModal(false);
+                      setEarnName("");
+                      setEarnReward("");
+                    }}
+                    style={{
+                      padding: "10px 20px",
+                      backgroundColor: "#28a745",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "6px",
+                      cursor: "pointer",
+                      fontWeight: 600,
+                      fontSize: "0.95rem",
+                      transition: "all 0.2s ease",
+                      flex: 1,
+                      boxShadow: "0 2px 6px rgba(0, 0, 0, 0.1)",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = "#218838";
+                      e.currentTarget.style.boxShadow =
+                        "0 4px 10px rgba(0, 0, 0, 0.15)";
+                      e.currentTarget.style.transform = "translateY(-2px)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "#28a745";
+                      e.currentTarget.style.boxShadow =
+                        "0 2px 6px rgba(0, 0, 0, 0.1)";
+                      e.currentTarget.style.transform = "translateY(0)";
+                    }}
+                  >
+                    Add
+                  </button>
+
+                  {/* Cancel button - closes modal without saving */}
+                  <button
+                    onClick={() => {
+                      setShowAddEarnModal(false);
+                      setEarnName("");
+                      setEarnReward("");
+                    }}
+                    style={{
+                      padding: "10px 20px",
+                      backgroundColor: "#f0f0f0",
+                      color: "#333",
+                      border: "2px solid #ddd",
+                      borderRadius: "6px",
+                      cursor: "pointer",
+                      fontWeight: 600,
+                      fontSize: "0.95rem",
+                      transition: "all 0.2s ease",
+                      flex: 1,
+                      boxShadow: "0 2px 6px rgba(0, 0, 0, 0.05)",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = "#e0e0e0";
+                      e.currentTarget.style.boxShadow =
+                        "0 4px 10px rgba(0, 0, 0, 0.1)";
+                      e.currentTarget.style.transform = "translateY(-2px)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "#f0f0f0";
+                      e.currentTarget.style.boxShadow =
+                        "0 2px 6px rgba(0, 0, 0, 0.05)";
+                      e.currentTarget.style.transform = "translateY(0)";
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
-    <button
-    onClick={saveGameToFirebase}
-    style={{
-    position: "fixed",
-    top: 180,
-    right: 12,
-    zIndex: 3000,
-    padding: "10px 16px",
-    backgroundColor: "#299c2b",
-    color: "white",
-    borderRadius: 8,
-    border: "none",
-    fontWeight: 600,
-    cursor: "pointer",
-  }}
-  >
-    Save
-  </button>
+      <button
+        onClick={saveGameToFirebase}
+        style={{
+          position: "fixed",
+          top: 180,
+          right: 12,
+          zIndex: 3000,
+          padding: "10px 16px",
+          backgroundColor: "#299c2b",
+          color: "white",
+          borderRadius: 8,
+          border: "none",
+          fontWeight: 600,
+          cursor: "pointer",
+        }}
+      >
+        Save
+      </button>
     </>
   );
 };

@@ -4,7 +4,7 @@ This document provides a comprehensive list of all external resources, libraries
 
 ---
 
-## 🔧 Core Technologies & Frameworks
+## Core Technologies & Frameworks
 
 ### React
 
@@ -215,7 +215,7 @@ All chameleon images located in `src/assets/chameleonImages/`
 
 ---
 
-## 📖 Code Templates & Snippets
+## Code Templates & Snippets
 
 ### React Component Structure
 
@@ -256,6 +256,6 @@ If you believe any attribution is missing or incorrect, please contact us at [sa
 
 ---
 
-## ❓ Questions About Credits
+## Questions About Credits
 
 If you have questions about any of the resources listed here or need more information about licensing, please refer to the respective documentation links or contact the project maintainers.
