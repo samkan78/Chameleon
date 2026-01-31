@@ -75,6 +75,12 @@ type GameState = {
   trickt2unlocked: boolean;
   unlockedEarnSpots: number;
   actionsState: Record<Category, Action[]>;
+  transactions?: Array<{
+    type: 'earn' | 'spend';
+    amount: number;
+    action: string;
+    timestamp: number;
+  }>;
 };
 
 // Starting stats - all begin at 50%
@@ -175,6 +181,7 @@ type FourButtonsProps = {
   setWinLose?: (val: string) => void;
   setOpenModal?: (open: boolean) => void;
   onStatsChange?: (level: number, coins: number, foodInventory: number) => void;
+  onCoinsClick?: () => void;
 };
 
 const FourButtons = ({
@@ -184,6 +191,7 @@ const FourButtons = ({
   setWinLose,
   setOpenModal,
   onStatsChange,
+  onCoinsClick,
 }: FourButtonsProps) => {
   // Toast context for showing popup notifications
   const { open } = useContext(ToastContext);
@@ -199,6 +207,15 @@ const FourButtons = ({
   
   // Win modal state
   const [showWinModal, setShowWinModal] = useState(false);
+  
+  // Transaction history tracking
+  const [transactions, setTransactions] = useState<Array<{
+    type: 'earn' | 'spend';
+    amount: number;
+    action: string;
+    timestamp: number;
+  }>>([]);
+  const [showTransactionModal, setShowTransactionModal] = useState(false);
 
   // Core game stats tracked with useState
   const [coins, setCoins] = useState(50);
@@ -239,6 +256,7 @@ const FourButtons = ({
       trickt2unlocked,
       unlockedEarnSpots,
       actionsState,
+      transactions,
     };
   };
 
@@ -300,6 +318,7 @@ const FourButtons = ({
     health,
     level,
     foodInventory,
+    transactions,
   ]);
 
   // Check for death condition whenever stats change
@@ -331,6 +350,7 @@ const FourButtons = ({
         setTrickt2unlocked(data.trickt2unlocked);
         setUnlockedEarnSpots(data.unlockedEarnSpots);
         setActionsState(data.actionsState);
+        setTransactions(data.transactions || []);
       } catch (err) {
         console.error("Failed to load save", err);
       }
@@ -560,7 +580,18 @@ const FourButtons = ({
         );
         return;
       } else {
-        setCoins(coins - action.cost);
+        const newCoins = coins - action.cost;
+        setCoins(newCoins);
+        
+        // Track transaction (negative cost = earning, positive = spending)
+        const transaction = {
+          type: action.cost < 0 ? 'earn' as const : 'spend' as const,
+          amount: Math.abs(action.cost),
+          action: action.name,
+          timestamp: Date.now(),
+        };
+        setTransactions(prev => [...prev, transaction]);
+        
         new Audio(dingSound).play(); // Play sound when coins change
       }
     }
@@ -584,8 +615,19 @@ const FourButtons = ({
     // Buying food adds to inventory
     if (action.isFood) {
       if (action.cost !== undefined) {
-        setCoins(coins - action.cost);
+        const newCoins = coins - action.cost;
+        setCoins(newCoins);
         setFoodInventory(foodInventory + 1);
+        
+        // Track food purchase transaction
+        const transaction = {
+          type: 'spend' as const,
+          amount: action.cost,
+          action: action.name,
+          timestamp: Date.now(),
+        };
+        setTransactions(prev => [...prev, transaction]);
+        
         open(
           <div className="bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg">
             Food purchased!
@@ -710,6 +752,46 @@ const FourButtons = ({
           }
         `}
       </style>
+      
+      {/* Clickable Transaction History Button - positioned to the left of Money component */}
+      <button
+        onClick={() => setShowTransactionModal(true)}
+        style={{
+          position: "fixed",
+          top: 75,
+          right: 130,
+          zIndex: 1000,
+          width: 80,
+          height: 35,
+          backgroundColor: "#1a1a1a",
+          color: "#FFD700",
+          fontWeight: "bold",
+          fontSize: "0.8rem",
+          border: "2px solid #333",
+          borderRadius: "6px",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "4px",
+          boxShadow: "0 2px 6px rgba(0, 0, 0, 0.15)",
+          transition: "all 0.2s ease",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = "#2a2a2a";
+          e.currentTarget.style.borderColor = "#FFD700";
+          e.currentTarget.style.transform = "translateY(-1px)";
+          e.currentTarget.style.boxShadow = "0 4px 10px rgba(0, 0, 0, 0.25)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = "#1a1a1a";
+          e.currentTarget.style.borderColor = "#333";
+          e.currentTarget.style.transform = "translateY(0)";
+          e.currentTarget.style.boxShadow = "0 2px 6px rgba(0, 0, 0, 0.15)";
+        }}
+      >
+        History
+      </button>
       
       <div className="four-buttons-wrapper">
         {/* Left side: animated chameleon image */}
@@ -1077,32 +1159,27 @@ const FourButtons = ({
                 left: 0,
                 right: 0,
                 bottom: 0,
-                backgroundColor: "rgba(0, 0, 0, 0.85)",
+                backgroundColor: "rgba(0, 0, 0, 0.6)",
                 zIndex: 9999,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                backdropFilter: "blur(8px)",
               }}
             >
               <div
                 style={{
-                  backgroundColor: "#1a1a1a",
-                  borderRadius: "20px",
-                  padding: "48px 40px",
-                  maxWidth: "500px",
-                  width: "90%",
-                  boxShadow: "0 20px 60px rgba(0, 0, 0, 0.6), 0 0 0 3px rgba(255, 69, 58, 0.3)",
-                  border: "3px solid #ff453a",
+                  background: "white",
+                  padding: 28,
+                  borderRadius: 12,
+                  width: 360,
                   textAlign: "center",
-                  animation: "deathModalFadeIn 0.4s ease-out",
+                  boxShadow: "0 10px 40px rgba(0, 0, 0, 0.2)",
                 }}
               >
                 <div
                   style={{
-                    fontSize: "72px",
-                    marginBottom: "20px",
-                    filter: "grayscale(100%)",
+                    fontSize: "64px",
+                    marginBottom: "16px",
                   }}
                 >
                   💀
@@ -1110,59 +1187,56 @@ const FourButtons = ({
                 
                 <h2
                   style={{
-                    fontSize: "32px",
-                    fontWeight: 700,
+                    fontSize: "1.5rem",
+                    fontWeight: "700",
                     color: "#ff453a",
-                    marginBottom: "16px",
-                    textShadow: "0 2px 10px rgba(255, 69, 58, 0.5)",
+                    margin: "0 0 12px 0",
                   }}
                 >
-                  Your Chameleon Has Died
+                  Your Chameleon Died
                 </h2>
                 
                 <p
                   style={{
-                    fontSize: "18px",
-                    color: "#a0a0a0",
-                    marginBottom: "32px",
-                    lineHeight: "1.6",
+                    fontSize: "0.95rem",
+                    color: "#555",
+                    marginBottom: "20px",
+                    lineHeight: "1.5",
                   }}
                 >
-                  {hydration <= 0 && "Your chameleon died from dehydration."}
-                  {energy <= 0 && "Your chameleon died from exhaustion."}
-                  {hunger <= 0 && "Your chameleon died from starvation."}
-                  {happiness <= 0 && "Your chameleon died from extreme sadness."}
-                  {health <= 0 && "Your chameleon died from poor health."}
+                  {hydration <= 0 && "Died from dehydration."}
+                  {energy <= 0 && "Died from exhaustion."}
+                  {hunger <= 0 && "Died from starvation."}
+                  {happiness <= 0 && "Died from extreme sadness."}
+                  {health <= 0 && "Died from poor health."}
                   <br />
-                  <br />
-                  Remember to monitor all stats carefully to keep your pet alive.
+                  Remember to monitor all stats!
                 </p>
 
                 <button
                   onClick={restartGame}
                   style={{
-                    padding: "16px 48px",
+                    padding: "10px 20px",
                     backgroundColor: "#ff453a",
                     color: "white",
                     border: "none",
-                    borderRadius: "12px",
+                    borderRadius: "6px",
                     cursor: "pointer",
-                    fontWeight: 700,
-                    fontSize: "18px",
-                    transition: "all 0.3s ease",
-                    boxShadow: "0 4px 20px rgba(255, 69, 58, 0.4)",
-                    textTransform: "uppercase",
-                    letterSpacing: "1px",
+                    fontWeight: 600,
+                    fontSize: "0.95rem",
+                    transition: "all 0.2s ease",
+                    width: "100%",
+                    boxShadow: "0 2px 6px rgba(0, 0, 0, 0.1)",
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#ff6961";
+                    e.currentTarget.style.backgroundColor = "#e03e35";
+                    e.currentTarget.style.boxShadow = "0 4px 10px rgba(0, 0, 0, 0.15)";
                     e.currentTarget.style.transform = "translateY(-2px)";
-                    e.currentTarget.style.boxShadow = "0 6px 25px rgba(255, 69, 58, 0.6)";
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.backgroundColor = "#ff453a";
+                    e.currentTarget.style.boxShadow = "0 2px 6px rgba(0, 0, 0, 0.1)";
                     e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "0 4px 20px rgba(255, 69, 58, 0.4)";
                   }}
                 >
                   Restart Game
@@ -1180,31 +1254,27 @@ const FourButtons = ({
                 left: 0,
                 right: 0,
                 bottom: 0,
-                backgroundColor: "rgba(0, 0, 0, 0.85)",
+                backgroundColor: "rgba(0, 0, 0, 0.6)",
                 zIndex: 9999,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                backdropFilter: "blur(8px)",
               }}
             >
               <div
                 style={{
-                  backgroundColor: "#1a1a1a",
-                  borderRadius: "20px",
-                  padding: "48px 40px",
-                  maxWidth: "500px",
-                  width: "90%",
-                  boxShadow: "0 20px 60px rgba(0, 0, 0, 0.6), 0 0 0 3px rgba(255, 215, 0, 0.4)",
-                  border: "3px solid #ffd700",
+                  background: "white",
+                  padding: 28,
+                  borderRadius: 12,
+                  width: 360,
                   textAlign: "center",
-                  animation: "deathModalFadeIn 0.4s ease-out",
+                  boxShadow: "0 10px 40px rgba(0, 0, 0, 0.2)",
                 }}
               >
                 <div
                   style={{
-                    fontSize: "72px",
-                    marginBottom: "20px",
+                    fontSize: "64px",
+                    marginBottom: "16px",
                   }}
                 >
                   🏆
@@ -1212,56 +1282,53 @@ const FourButtons = ({
                 
                 <h2
                   style={{
-                    fontSize: "32px",
-                    fontWeight: 700,
+                    fontSize: "1.5rem",
+                    fontWeight: "700",
                     color: "#ffd700",
-                    marginBottom: "16px",
-                    textShadow: "0 2px 10px rgba(255, 215, 0, 0.5)",
+                    margin: "0 0 12px 0",
                   }}
                 >
-                  Congratulations!
+                  You Win!
                 </h2>
                 
                 <p
                   style={{
-                    fontSize: "18px",
-                    color: "#a0a0a0",
-                    marginBottom: "32px",
-                    lineHeight: "1.6",
+                    fontSize: "0.95rem",
+                    color: "#555",
+                    marginBottom: "20px",
+                    lineHeight: "1.5",
                   }}
                 >
-                  You've successfully raised your chameleon to Level 4!
+                  You raised your chameleon to Level 4!
                   <br />
-                  <br />
-                  You're an expert chameleon caretaker! You can continue playing to see how long you can keep your chameleon thriving, or start fresh with a new pet.
+                  You can keep playing or start fresh.
                 </p>
 
-                <div style={{ display: "flex", gap: "16px", justifyContent: "center" }}>
+                <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
                   <button
                     onClick={continueGame}
                     style={{
-                      padding: "16px 32px",
+                      padding: "10px 20px",
                       backgroundColor: "#10b981",
                       color: "white",
                       border: "none",
-                      borderRadius: "12px",
+                      borderRadius: "6px",
                       cursor: "pointer",
-                      fontWeight: 700,
-                      fontSize: "18px",
-                      transition: "all 0.3s ease",
-                      boxShadow: "0 4px 20px rgba(16, 185, 129, 0.4)",
-                      textTransform: "uppercase",
-                      letterSpacing: "1px",
+                      fontWeight: 600,
+                      fontSize: "0.95rem",
+                      transition: "all 0.2s ease",
+                      flex: 1,
+                      boxShadow: "0 2px 6px rgba(0, 0, 0, 0.1)",
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.backgroundColor = "#059669";
+                      e.currentTarget.style.boxShadow = "0 4px 10px rgba(0, 0, 0, 0.15)";
                       e.currentTarget.style.transform = "translateY(-2px)";
-                      e.currentTarget.style.boxShadow = "0 6px 25px rgba(16, 185, 129, 0.6)";
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.backgroundColor = "#10b981";
+                      e.currentTarget.style.boxShadow = "0 2px 6px rgba(0, 0, 0, 0.1)";
                       e.currentTarget.style.transform = "translateY(0)";
-                      e.currentTarget.style.boxShadow = "0 4px 20px rgba(16, 185, 129, 0.4)";
                     }}
                   >
                     Continue
@@ -1270,33 +1337,169 @@ const FourButtons = ({
                   <button
                     onClick={restartGame}
                     style={{
-                      padding: "16px 32px",
-                      backgroundColor: "#ffd700",
-                      color: "#1a1a1a",
-                      border: "none",
-                      borderRadius: "12px",
+                      padding: "10px 20px",
+                      backgroundColor: "#f0f0f0",
+                      color: "#333",
+                      border: "2px solid #ddd",
+                      borderRadius: "6px",
                       cursor: "pointer",
-                      fontWeight: 700,
-                      fontSize: "18px",
-                      transition: "all 0.3s ease",
-                      boxShadow: "0 4px 20px rgba(255, 215, 0, 0.4)",
-                      textTransform: "uppercase",
-                      letterSpacing: "1px",
+                      fontWeight: 600,
+                      fontSize: "0.95rem",
+                      transition: "all 0.2s ease",
+                      flex: 1,
+                      boxShadow: "0 2px 6px rgba(0, 0, 0, 0.05)",
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = "#ffed4e";
+                      e.currentTarget.style.backgroundColor = "#e0e0e0";
+                      e.currentTarget.style.boxShadow = "0 4px 10px rgba(0, 0, 0, 0.1)";
                       e.currentTarget.style.transform = "translateY(-2px)";
-                      e.currentTarget.style.boxShadow = "0 6px 25px rgba(255, 215, 0, 0.6)";
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = "#ffd700";
+                      e.currentTarget.style.backgroundColor = "#f0f0f0";
+                      e.currentTarget.style.boxShadow = "0 2px 6px rgba(0, 0, 0, 0.05)";
                       e.currentTarget.style.transform = "translateY(0)";
-                      e.currentTarget.style.boxShadow = "0 4px 20px rgba(255, 215, 0, 0.4)";
                     }}
                   >
                     New Game
                   </button>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Transaction History Modal */}
+          {showTransactionModal && (
+            <div
+              style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: "rgba(0, 0, 0, 0.6)",
+                zIndex: 9999,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              onClick={() => setShowTransactionModal(false)}
+            >
+              <div
+                style={{
+                  background: "white",
+                  padding: 28,
+                  borderRadius: 12,
+                  width: 360,
+                  textAlign: "center",
+                  boxShadow: "0 10px 40px rgba(0, 0, 0, 0.2)",
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h2
+                  style={{
+                    fontSize: "1.5rem",
+                    fontWeight: "700",
+                    color: "#1a1a1a",
+                    margin: "0 0 20px 0",
+                  }}
+                >
+                  💰 Financial Summary
+                </h2>
+
+                {transactions.length === 0 ? (
+                  <p style={{ color: "#666", textAlign: "center", padding: "20px 0" }}>
+                    No transactions yet. Start earning or spending coins!
+                  </p>
+                ) : (
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "12px",
+                      marginBottom: "20px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        padding: "16px",
+                        backgroundColor: "#f0fdf4",
+                        borderRadius: "8px",
+                        textAlign: "center",
+                        border: "2px solid #10b981",
+                      }}
+                    >
+                      <div style={{ fontSize: "0.85rem", color: "#666", marginBottom: "4px" }}>
+                        Total Earned
+                      </div>
+                      <div style={{ fontSize: "1.5rem", fontWeight: 700, color: "#10b981" }}>
+                        +{transactions.filter(t => t.type === 'earn').reduce((sum, t) => sum + t.amount, 0)}
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        padding: "16px",
+                        backgroundColor: "#fef2f2",
+                        borderRadius: "8px",
+                        textAlign: "center",
+                        border: "2px solid #ff453a",
+                      }}
+                    >
+                      <div style={{ fontSize: "0.85rem", color: "#666", marginBottom: "4px" }}>
+                        Total Spent
+                      </div>
+                      <div style={{ fontSize: "1.5rem", fontWeight: 700, color: "#ff453a" }}>
+                        -{transactions.filter(t => t.type === 'spend').reduce((sum, t) => sum + t.amount, 0)}
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        padding: "16px",
+                        backgroundColor: "#fffbeb",
+                        borderRadius: "8px",
+                        textAlign: "center",
+                        border: "2px solid #ffd700",
+                      }}
+                    >
+                      <div style={{ fontSize: "0.85rem", color: "#666", marginBottom: "4px" }}>
+                        Net Total
+                      </div>
+                      <div style={{ fontSize: "1.5rem", fontWeight: 700, color: "#d4af37" }}>
+                        {transactions.reduce((sum, t) => sum + (t.type === 'earn' ? t.amount : -t.amount), 0)}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  onClick={() => setShowTransactionModal(false)}
+                  style={{
+                    width: "100%",
+                    padding: "10px 20px",
+                    backgroundColor: "#f0f0f0",
+                    color: "#333",
+                    border: "2px solid #ddd",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                    fontWeight: 600,
+                    fontSize: "0.95rem",
+                    transition: "all 0.2s ease",
+                    boxShadow: "0 2px 6px rgba(0, 0, 0, 0.05)",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#e0e0e0";
+                    e.currentTarget.style.boxShadow = "0 4px 10px rgba(0, 0, 0, 0.1)";
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "#f0f0f0";
+                    e.currentTarget.style.boxShadow = "0 2px 6px rgba(0, 0, 0, 0.05)";
+                    e.currentTarget.style.transform = "translateY(0)";
+                  }}
+                >
+                  Close
+                </button>
               </div>
             </div>
           )}
