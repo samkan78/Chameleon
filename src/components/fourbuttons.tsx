@@ -4,6 +4,7 @@ import "./fourbuttons.css";
 import dingSound from "../assets/ding.mp3";
 import HealthBars from "./healthbars";
 import ToastContext from "./ToastService";
+import { useRestart } from "./RestartContext";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import { useRef } from "react";
@@ -11,17 +12,29 @@ import { useRef } from "react";
 // Import all chameleon sprites for the three species at different levels and moods
 import Level_1_PantherChameleonHappy from "../assets/chameleonImages/Panther Chameleon/Level 1/Panther Chameleon Level 1 YELLOW.png";
 import Level_1_PantherChameleonNormal from "../assets/chameleonImages/Panther Chameleon/Level 1/Panther Chameleon Level 1 GREEN.png";
+import Level_1_PantherChameleonSick from "../assets/chameleonImages/Panther Chameleon/Level 1/Panther Chameleon Level 1 GREY.png";
+import Level_1_PantherChameleonAngry from "../assets/chameleonImages/Panther Chameleon/Level 1/Panther Chameleon Level 1 ORANGE-RED.png";
 import Level_2_PantherChameleonHappy from "../assets/chameleonImages/Panther Chameleon/Level 2/Panther Chameleon YELLOW.png";
 import Level_2_PantherChameleonNormal from "../assets/chameleonImages/Panther Chameleon/Level 2/Panther Chameleon GREEN.png";
+import Level_2_PantherChameleonSick from "../assets/chameleonImages/Panther Chameleon/Level 2/Panther Chameleon GREY.png";
+import Level_2_PantherChameleonAngry from "../assets/chameleonImages/Panther Chameleon/Level 2/Panther Chameleon ORANGE-RED.png";
 import Level_3_PantherChameleonHappy from "../assets/chameleonImages/Panther Chameleon/Level 3/Panther Chameleon Level 3 YELLOW.png";
 import Level_3_PantherChameleonNormal from "../assets/chameleonImages/Panther Chameleon/Level 3/Panther Chameleon Level 3 GREEN.png";
+import Level_3_PantherChameleonSick from "../assets/chameleonImages/Panther Chameleon/Level 3/Panther Chameleon Level 3 GREY.png";
+import Level_3_PantherChameleonAngry from "../assets/chameleonImages/Panther Chameleon/Level 3/Panther Chameleon Level 3 ORANGE-RED.png";
 
 import Level_1_JacksonsChameleonHappy from "../assets/chameleonImages/Jackson's Chameleon/Level 1/Jackson's Chameleon Level 1 YELLOW.png";
 import Level_1_JacksonsChameleonNormal from "../assets/chameleonImages/Jackson's Chameleon/Level 1/Jackson's Chameleon Level 1 GREEN.png";
+import Level_1_JacksonsChameleonSick from "../assets/chameleonImages/Jackson's Chameleon/Level 1/Jackson's Chameleon Level 1 GREY.png";
+import Level_1_JacksonsChameleonAngry from "../assets/chameleonImages/Jackson's Chameleon/Level 1/Jackson's Chameleon Level 1 ORANGE-RED.png";
 import Level_2_JacksonsChameleonHappy from "../assets/chameleonImages/Jackson's Chameleon/Level 2/Jackson's Chameleon Level 2 YELLOW.png";
 import Level_2_JacksonsChameleonNormal from "../assets/chameleonImages/Jackson's Chameleon/Level 2/Jackson's Chameleon Level 2 GREEN.png";
+import Level_2_JacksonsChameleonSick from "../assets/chameleonImages/Jackson's Chameleon/Level 2/Jackson's Chameleon Level 2 GREY.png";
+import Level_2_JacksonsChameleonAngry from "../assets/chameleonImages/Jackson's Chameleon/Level 2/Jackson's Chameleon Level 2 ORANGE-RED.png";
 import Level_3_JacksonsChameleonHappy from "../assets/chameleonImages/Jackson's Chameleon/Level 3/Jackson's Chameleon Level 3 YELLOW.png";
 import Level_3_JacksonsChameleonNormal from "../assets/chameleonImages/Jackson's Chameleon/Level 3/Jackson's Chameleon Level 3 GREEN.png";
+import Level_3_JacksonsChameleonSick from "../assets/chameleonImages/Jackson's Chameleon/Level 3/Jackson's Chameleon Level 3 GREY.png";
+import Level_3_JacksonsChameleonAngry from "../assets/chameleonImages/Jackson's Chameleon/Level 3/Jackson's Chameleon Level 3 ORANGE-RED.png";
 
 import NoseHornedChameleonGreen from "../assets/chameleons/nose-horned-green.png";
 import NoseHornedChameleonYellow from "../assets/chameleons/nose-horned-yellow.png";
@@ -174,9 +187,18 @@ const FourButtons = ({
 }: FourButtonsProps) => {
   // Toast context for showing popup notifications
   const { open } = useContext(ToastContext);
+  
+  // Get restart function from context to trigger full app reset
+  const { restartGame: restartGameContext } = useRestart();
 
   // Track which category is currently open (Health, Care, etc.)
   const [active, setActive] = useState<Category | null>(null);
+
+  // Death modal state
+  const [showDeathModal, setShowDeathModal] = useState(false);
+  
+  // Win modal state
+  const [showWinModal, setShowWinModal] = useState(false);
 
   // Core game stats tracked with useState
   const [coins, setCoins] = useState(50);
@@ -280,6 +302,13 @@ const FourButtons = ({
     foodInventory,
   ]);
 
+  // Check for death condition whenever stats change
+  useEffect(() => {
+    if (hydration <= 0 || energy <= 0 || hunger <= 0 || happiness <= 0 || health <= 0) {
+      setShowDeathModal(true);
+    }
+  }, [hydration, energy, hunger, happiness, health]);
+
   useEffect(() => {
     if (!userId) return;
 
@@ -326,10 +355,10 @@ const FourButtons = ({
       const newLevel = level + 1;
 
       // Win condition: reaching level 4 (after level 3)
-      if (level === 3) {
-        setWinLose?.("WIN");
-        setOpenModal?.(true);
+      if (newLevel === 4) {
+        setShowWinModal(true);
         if (userId && saveGameData) saveGameData(userId);
+        return; // Don't continue with normal level up
       }
 
       // Level up: increase level, unlock more earn slots, reset all stats to 50
@@ -370,22 +399,54 @@ const FourButtons = ({
     onStatsChange?.(level, coins, foodInventory);
   }, [level, coins, foodInventory]);
 
+  // Restart game function - resets all stats and navigates back to start
+  const restartGame = () => {
+    // Close the death modal first
+    setShowDeathModal(false);
+    
+    // Call the global restart function from context
+    // This will clear all app state and navigate to the start page
+    restartGameContext();
+  };
+  
+  // Continue playing after win - closes modal and continues at level 4
+  const continueGame = () => {
+    setShowWinModal(false);
+    setLevel(4);
+    setUnlockedEarnSpots(8);
+    setEnergy(50);
+    setHunger(50);
+    setHydration(50);
+    setHappiness(50);
+    setHealth(50);
+    
+    open(
+      <div className="bg-purple-500 text-white px-4 py-3 rounded-lg shadow-lg font-bold">
+        Congratulations! You've reached Level 4! Keep going!
+      </div>,
+      3000,
+    );
+  };
+
   // Image mappings for Panther Chameleon at each level
   const pantherImages = {
     1: {
       happy: Level_1_PantherChameleonHappy,
       normal: Level_1_PantherChameleonNormal,
-      sick: Level_1_PantherChameleonHappy,
-      angry: Level_1_PantherChameleonHappy,
+      sick: Level_1_PantherChameleonSick,
+      angry: Level_1_PantherChameleonAngry,
     },
     2: {
       happy: Level_2_PantherChameleonHappy,
       normal: Level_2_PantherChameleonNormal,
-      sick: Level_2_PantherChameleonHappy,
+      sick: Level_2_PantherChameleonSick,
+      angry: Level_2_PantherChameleonAngry,
     },
     3: {
       happy: Level_3_PantherChameleonHappy,
       normal: Level_3_PantherChameleonNormal,
+      sick: Level_3_PantherChameleonSick,
+      angry: Level_3_PantherChameleonAngry,
     },
   };
 
@@ -394,14 +455,20 @@ const FourButtons = ({
     1: {
       happy: Level_1_JacksonsChameleonHappy,
       normal: Level_1_JacksonsChameleonNormal,
+      sick: Level_1_JacksonsChameleonSick,
+      angry: Level_1_JacksonsChameleonAngry,
     },
     2: {
       happy: Level_2_JacksonsChameleonHappy,
       normal: Level_2_JacksonsChameleonNormal,
+      sick: Level_2_JacksonsChameleonSick,
+      angry: Level_2_JacksonsChameleonAngry,
     },
     3: {
       happy: Level_3_JacksonsChameleonHappy,
       normal: Level_3_JacksonsChameleonNormal,
+      sick: Level_3_JacksonsChameleonSick,
+      angry: Level_3_JacksonsChameleonAngry,
     },
   };
 
@@ -418,9 +485,9 @@ const FourButtons = ({
 
   // Determine chameleon's current mood based on stats
   const getMood = (): Mood => {
-    if (happiness >= 90) return "happy";
-    if (health <= 30 || energy <= 30) return "sick";
-    if (hunger <= 30 || hydration <= 30) return "angry";
+    if (health <= 35 || energy <= 35) return "sick";
+    if (hunger <= 35 || hydration <= 35) return "angry";
+    if (happiness >= 75) return "happy";
     return "normal";
   };
 
@@ -629,6 +696,21 @@ const FourButtons = ({
   // Main render - left panel shows chameleon, right panel shows stats and buttons
   return (
     <>
+      <style>
+        {`
+          @keyframes deathModalFadeIn {
+            from {
+              opacity: 0;
+              transform: scale(0.9);
+            }
+            to {
+              opacity: 1;
+              transform: scale(1);
+            }
+          }
+        `}
+      </style>
+      
       <div className="four-buttons-wrapper">
         {/* Left side: animated chameleon image */}
         <div className="left-panel">
@@ -980,6 +1062,239 @@ const FourButtons = ({
                     }}
                   >
                     Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Death Modal - appears when any stat reaches 0 */}
+          {showDeathModal && (
+            <div
+              style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: "rgba(0, 0, 0, 0.85)",
+                zIndex: 9999,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                backdropFilter: "blur(8px)",
+              }}
+            >
+              <div
+                style={{
+                  backgroundColor: "#1a1a1a",
+                  borderRadius: "20px",
+                  padding: "48px 40px",
+                  maxWidth: "500px",
+                  width: "90%",
+                  boxShadow: "0 20px 60px rgba(0, 0, 0, 0.6), 0 0 0 3px rgba(255, 69, 58, 0.3)",
+                  border: "3px solid #ff453a",
+                  textAlign: "center",
+                  animation: "deathModalFadeIn 0.4s ease-out",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: "72px",
+                    marginBottom: "20px",
+                    filter: "grayscale(100%)",
+                  }}
+                >
+                  💀
+                </div>
+                
+                <h2
+                  style={{
+                    fontSize: "32px",
+                    fontWeight: 700,
+                    color: "#ff453a",
+                    marginBottom: "16px",
+                    textShadow: "0 2px 10px rgba(255, 69, 58, 0.5)",
+                  }}
+                >
+                  Your Chameleon Has Died
+                </h2>
+                
+                <p
+                  style={{
+                    fontSize: "18px",
+                    color: "#a0a0a0",
+                    marginBottom: "32px",
+                    lineHeight: "1.6",
+                  }}
+                >
+                  {hydration <= 0 && "Your chameleon died from dehydration."}
+                  {energy <= 0 && "Your chameleon died from exhaustion."}
+                  {hunger <= 0 && "Your chameleon died from starvation."}
+                  {happiness <= 0 && "Your chameleon died from extreme sadness."}
+                  {health <= 0 && "Your chameleon died from poor health."}
+                  <br />
+                  <br />
+                  Remember to monitor all stats carefully to keep your pet alive.
+                </p>
+
+                <button
+                  onClick={restartGame}
+                  style={{
+                    padding: "16px 48px",
+                    backgroundColor: "#ff453a",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "12px",
+                    cursor: "pointer",
+                    fontWeight: 700,
+                    fontSize: "18px",
+                    transition: "all 0.3s ease",
+                    boxShadow: "0 4px 20px rgba(255, 69, 58, 0.4)",
+                    textTransform: "uppercase",
+                    letterSpacing: "1px",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#ff6961";
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                    e.currentTarget.style.boxShadow = "0 6px 25px rgba(255, 69, 58, 0.6)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "#ff453a";
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "0 4px 20px rgba(255, 69, 58, 0.4)";
+                  }}
+                >
+                  Restart Game
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Win Modal - appears when player reaches level 4 */}
+          {showWinModal && (
+            <div
+              style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: "rgba(0, 0, 0, 0.85)",
+                zIndex: 9999,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                backdropFilter: "blur(8px)",
+              }}
+            >
+              <div
+                style={{
+                  backgroundColor: "#1a1a1a",
+                  borderRadius: "20px",
+                  padding: "48px 40px",
+                  maxWidth: "500px",
+                  width: "90%",
+                  boxShadow: "0 20px 60px rgba(0, 0, 0, 0.6), 0 0 0 3px rgba(255, 215, 0, 0.4)",
+                  border: "3px solid #ffd700",
+                  textAlign: "center",
+                  animation: "deathModalFadeIn 0.4s ease-out",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: "72px",
+                    marginBottom: "20px",
+                  }}
+                >
+                  🏆
+                </div>
+                
+                <h2
+                  style={{
+                    fontSize: "32px",
+                    fontWeight: 700,
+                    color: "#ffd700",
+                    marginBottom: "16px",
+                    textShadow: "0 2px 10px rgba(255, 215, 0, 0.5)",
+                  }}
+                >
+                  Congratulations!
+                </h2>
+                
+                <p
+                  style={{
+                    fontSize: "18px",
+                    color: "#a0a0a0",
+                    marginBottom: "32px",
+                    lineHeight: "1.6",
+                  }}
+                >
+                  You've successfully raised your chameleon to Level 4!
+                  <br />
+                  <br />
+                  You're an expert chameleon caretaker! You can continue playing to see how long you can keep your chameleon thriving, or start fresh with a new pet.
+                </p>
+
+                <div style={{ display: "flex", gap: "16px", justifyContent: "center" }}>
+                  <button
+                    onClick={continueGame}
+                    style={{
+                      padding: "16px 32px",
+                      backgroundColor: "#10b981",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "12px",
+                      cursor: "pointer",
+                      fontWeight: 700,
+                      fontSize: "18px",
+                      transition: "all 0.3s ease",
+                      boxShadow: "0 4px 20px rgba(16, 185, 129, 0.4)",
+                      textTransform: "uppercase",
+                      letterSpacing: "1px",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = "#059669";
+                      e.currentTarget.style.transform = "translateY(-2px)";
+                      e.currentTarget.style.boxShadow = "0 6px 25px rgba(16, 185, 129, 0.6)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "#10b981";
+                      e.currentTarget.style.transform = "translateY(0)";
+                      e.currentTarget.style.boxShadow = "0 4px 20px rgba(16, 185, 129, 0.4)";
+                    }}
+                  >
+                    Continue
+                  </button>
+
+                  <button
+                    onClick={restartGame}
+                    style={{
+                      padding: "16px 32px",
+                      backgroundColor: "#ffd700",
+                      color: "#1a1a1a",
+                      border: "none",
+                      borderRadius: "12px",
+                      cursor: "pointer",
+                      fontWeight: 700,
+                      fontSize: "18px",
+                      transition: "all 0.3s ease",
+                      boxShadow: "0 4px 20px rgba(255, 215, 0, 0.4)",
+                      textTransform: "uppercase",
+                      letterSpacing: "1px",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = "#ffed4e";
+                      e.currentTarget.style.transform = "translateY(-2px)";
+                      e.currentTarget.style.boxShadow = "0 6px 25px rgba(255, 215, 0, 0.6)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "#ffd700";
+                      e.currentTarget.style.transform = "translateY(0)";
+                      e.currentTarget.style.boxShadow = "0 4px 20px rgba(255, 215, 0, 0.4)";
+                    }}
+                  >
+                    New Game
                   </button>
                 </div>
               </div>
